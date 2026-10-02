@@ -6,7 +6,7 @@ Im Rahmen der Veranstaltung "Projektstudie Entwicklung von mobilen Unternehmensa
 
 ## Projektorganisation
 
-Das Projekt wird durch ein Scrum-Team durchgeführt. Ein Teammitglied übernimmt die Rolle des Product Owners, die übrigen Teammitglieder arbeiten als Entwickler. Laut Vorgabe programmieren, testen und dokumentieren die Entwickler und das Team soll aus 4–7 Entwicklern bestehen. Die Rolle des Scrum Masters übernimmt die Dozentin.
+Das Projekt wird durch ein Scrum-Team durchgeführt. Maximilian Stephan (223702) übernimmt die Rolle des Product Owners, die übrigen Teammitglieder Louis Sämann (223519), Ümit Emekse (220857), Tom Jarolim (222880), Manuel Pflaum (219241), Ahmad (227308), Guilliermo Morishige-Takane (224921) arbeiten als Entwickler. Laut Vorgabe programmieren, testen und dokumentieren die Entwickler und das Team soll aus 4–7 Entwicklern bestehen. Die Rolle des Scrum Masters übernimmt die Dozentin.
 
 ## Ausgangssituation
 
@@ -37,7 +37,7 @@ Optional können Funktionen wie QR-Codes, Wartungsverwaltung, **CSV**-Import/-Ex
 
 ## Vorgehensweise der Aktivitäten
 
-Die Entwicklung erfolgt iterativ auf Basis von Scrum. Eine Iteration dauert gemäß Veranstaltung zwei Wochen; über das Semester sind 6–7 Iterationen vorgesehen. Jede Iteration umfasst Planung, Entwicklungsarbeiten, Präsentation der lauffähigen Software und Retrospektive. **PROJEKTSTUDIE** **ENTWICKLUNG** **VON** **MOBILEN** **UNTERNEHMENSANWENDUNGEN**.pdf
+Die Entwicklung erfolgt iterativ auf Basis von Scrum. Eine Iteration dauert gemäß Veranstaltung zwei Wochen; über das Semester sind 6–7 Iterationen vorgesehen. Jede Iteration umfasst Planung, Entwicklungsarbeiten, Präsentation der lauffähigen Software und Retrospektive.
 
 Innerhalb der Sprints werden Anforderungen verfeinert und anschließend Design, Implementierung, Tests und Dokumentation durchgeführt. Diese Aktivitäten entsprechen ebenfalls dem vorgesehenen Entwicklungsablauf der Veranstaltung.
 
