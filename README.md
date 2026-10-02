@@ -1,1 +1,1 @@
-# Prokektstudie mobile Unternehmensanwendungen - Device Inventory
+# Projektstudie mobile Unternehmensanwendungen - Device Inventory
