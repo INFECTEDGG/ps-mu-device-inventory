@@ -58,7 +58,6 @@ Die folgenden Funktionen sind nicht zwingend für die erste funktionsfähige Ver
 | **FA-27** | Für Geräte kann ein QR-Code erzeugt werden, der auf die jeweilige Gerätedetailseite verweist. |
 | **FA-28** | Das System kann Benutzer über anstehende Wartungstermine informieren. |
 | **FA-29** | Benutzer können bestimmte Daten ihres eigenen Profils verwalten. |
-| **FA-30** | Mitarbeiter können verfügbare Geräte selbst reservieren bzw. buchen. |
 
 ---
 
