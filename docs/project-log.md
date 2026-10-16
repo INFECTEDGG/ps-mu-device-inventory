@@ -13,7 +13,7 @@ waren, können hier relevante Änderungen nachlesen.
 
 ### Teilnehmer
 
-- Maximilian Stephan
+- Maximilian Stephan (223702)
 - Louis Sämann (223519)
 - Tom Jarolim (222880)
 - Manuel Pflaum (219241)
@@ -42,9 +42,9 @@ modernen webbasierten Benutzeroberfläche unterstützt werden.
 
 ### Datenbank
 
-Das initiale Datenmodell wurde in Supabase angelegt.
+Das initiale Datenmodell wurde in Supabase umgesetzt.
 
-Folgende Tabellen wurden erstellt:
+Folgende zentrale Tabellen wurden erstellt:
 
 - `roles`
 - `profiles`
@@ -53,16 +53,60 @@ Folgende Tabellen wurden erstellt:
 - `device_status_history`
 - `audit_logs`
 
-Die Foreign-Key-Beziehungen und Constraints werden im nächsten Schritt
-konfiguriert.
+Die notwendigen Foreign-Key-Beziehungen zwischen den Tabellen wurden
+eingerichtet.
+
+Unter anderem bestehen folgende Beziehungen:
+
+- `profiles` ist mit `auth.users` von Supabase Auth verknüpft.
+- `profiles` ist über `role_id` mit `roles` verknüpft.
+- `assignments` ist mit `devices` und `profiles` verknüpft.
+- `device_status_history` ist mit `devices` und `profiles` verknüpft.
+- `audit_logs` ist mit `profiles` verknüpft.
+
+Zusätzlich wurden Constraints zur Sicherstellung der Datenintegrität
+eingerichtet:
+
+- Pro Gerät kann nur eine aktive Zuweisung existieren.
+- Ein Rückgabedatum darf nicht vor dem Zuweisungsdatum liegen.
+- Gerätestatus sind auf die definierten Statuswerte beschränkt.
+- Die Statushistorie verwendet dieselben definierten Statuswerte.
+
+Folgende initiale Rollen wurden angelegt:
+
+- `admin`
+- `device_manager`
+- `employee`
+
+Damit ist die grundlegende Datenbankstruktur für den aktuellen
+Projektumfang fertiggestellt.
+
+### Aktueller Stand
+
+Die Anforderungen und das grundlegende Datenmodell wurden definiert.
+
+Die PostgreSQL-Datenbank wurde über Supabase eingerichtet und die zentralen
+Tabellen, Beziehungen, Constraints und Rollen wurden angelegt.
+
+Die eigentliche Webanwendung wurde noch nicht implementiert. Aktuell existiert
+noch keine Benutzeroberfläche und die Backend-Technologie wurde noch nicht
+abschließend festgelegt.
 
 ### Nächste Schritte
 
-- Foreign-Key-Beziehungen konfigurieren
-- Constraints der Datenbank definieren
-- initiale Rollen anlegen
-- Datenmodell testen
 - Backend-Technologie festlegen
+- React-/TypeScript-Projekt aufsetzen
+- grundlegende Projektstruktur für Frontend und Backend erstellen
+- Verbindung zwischen Anwendung und Supabase herstellen
+- ersten End-to-End-Datenzugriff implementieren
+- Datenmodell mit Testdaten testen
+- Authentifizierung und Rollenmodell in die Anwendung integrieren
+
+### Probleme / offene Fragen
+
+- Welche Technologie wird für das Backend verwendet?
+- Wie wird die Anwendung zwischen Frontend, Backend und Supabase aufgeteilt?
+- Wie wird das Deployment der einzelnen Anwendungskomponenten umgesetzt?
 
 ---
 
@@ -76,7 +120,7 @@ konfiguriert.
 
 - ...
 
-### Änderungen
+### Änderungen / Fortschritt
 
 - ...
 
