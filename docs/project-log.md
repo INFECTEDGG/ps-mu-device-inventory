@@ -92,6 +92,8 @@ Die eigentliche Webanwendung wurde noch nicht implementiert. Aktuell existiert
 noch keine Benutzeroberfläche und die Backend-Technologie wurde noch nicht
 abschließend festgelegt.
 
+Sprint 1 wurde vollständig abgeschlossen.
+
 ### Nächste Schritte
 
 - Backend-Technologie festlegen
@@ -107,6 +109,36 @@ abschließend festgelegt.
 - Welche Technologie wird für das Backend verwendet?
 - Wie wird die Anwendung zwischen Frontend, Backend und Supabase aufgeteilt?
 - Wie wird das Deployment der einzelnen Anwendungskomponenten umgesetzt?
+
+---
+
+## 23.10.2026
+
+### Teilnehmer
+
+- Maximilian Stephan (223702)
+- Manuel Pflaum (219241)
+- Guilliermo Morishige-Takane (224921)
+
+
+### Entscheidungen
+
+- Audit Log einheitlich in Device Page und einen generellen Audit Log für global.
+
+### Änderungen / Fortschritt
+
+- Offizieller Start von Sprint 2 (Benutzer & Authentifizierung	Login/Logout, Benutzerverwaltung, Rollen und Berechtigungen)
+- Datenbank auf Supabase wurde in https://github.com/INFECTEDGG/ps-mu-device-inventory/issues/21 erstellt.
+- Erster Frontend Entwurf wurde erstellt und läuft produktiv unter [PS-MU-Device-Inventory](https://ps-mu-device-inventory.vercel.app)
+
+
+### Probleme / offene Fragen
+
+- An der Präsentation ist jeder für seinen hochgeladenen Code verantwortlich und soll diesen erklären können.
+
+### Nächste Schritte
+
+- Sprint 2 abschließen
 
 ---
 
