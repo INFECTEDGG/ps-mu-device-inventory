@@ -140,6 +140,10 @@ flowchart TD
 
 Die einzelnen Bereiche werden im Projektverlauf nicht ausschließlich sequenziell bearbeitet. Insbesondere Entwicklung, Tests und Dokumentation finden wiederkehrend innerhalb der einzelnen Sprints statt.
 
+## Frontend
+
+Das responsive React-/TypeScript-Grundgerüst befindet sich im Verzeichnis [`frontend`](frontend/README.md). Hinweise zum lokalen Start, zu den wiederverwendbaren UI-Komponenten und zu den Integrationspunkten für spätere Fachansichten sind dort dokumentiert.
+
 ## Sprint-Projektplan
 
 Die Entwicklung wird in mehrere zweiwöchige Sprints unterteilt. Die konkrete Auswahl und Priorisierung der Anforderungen erfolgt jeweils im Sprint Planning.
