@@ -19,7 +19,7 @@ Maximilian Stephan (223702) übernimmt die Rolle des **Product Owners**. Die üb
 - Tom Jarolim (222880)
 - Michael Pflaum (219241)
 - Ali Ahmad (227308)
-- Guilliermo Morishige-Takane (224921)
+- Guillermo Morishige-Takane (224921)
 
 arbeiten als Entwickler.
 
