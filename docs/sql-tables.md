@@ -269,24 +269,69 @@ Beispielsweise können folgende Aktionen protokolliert werden:
 | Attribut | Beschreibung |
 |---|---|
 | `id` | Eindeutige UUID des Audit-Eintrags |
-| `user_id` | Benutzer, der die Aktion durchgeführt hat |
+| `user_id` | Benutzer, der die Aktion durchgeführt hat (`profiles.id`); leer bei Änderungen ohne Benutzersitzung |
 | `action` | Art der durchgeführten Aktion |
-| `entity_type` | Art des betroffenen Objekts |
+| `entity_type` | Art des betroffenen Objekts (`device` oder `user`) |
 | `entity_id` | ID des betroffenen Objekts |
-| `details` | Zusätzliche Informationen zur Aktion |
+| `entity_title` | Lesbare Bezeichnung des Objekts zum Zeitpunkt der Aktion, z. B. Inventarnummer oder Name |
+| `details` | Zusätzliche Informationen zur Aktion als `jsonb` |
 | `created_at` | Zeitpunkt der Aktion |
 
-Das Feld `details` kann beispielsweise als `jsonb` umgesetzt werden, sodass zusätzliche Informationen flexibel gespeichert werden können.
+### Protokollierte Aktionen
+
+| Aktion | Auslöser | `entity_type` | Inhalt von `details` |
+|---|---|---|---|
+| `DEVICE_CREATED` | Gerät angelegt | `device` | Gerätedaten |
+| `DEVICE_UPDATED` | Gerätedaten geändert (ohne Status) | `device` | `changes` mit altem und neuem Wert je Feld |
+| `DEVICE_STATUS_CHANGED` | Gerätestatus geändert | `device` | `old_status`, `new_status` |
+| `DEVICE_DELETED` | Gerät gelöscht | `device` | Gerätedaten |
+| `DEVICE_ASSIGNED` | Zuweisung angelegt | `device` | `assignment_id`, `employee_id`, `assigned_at` |
+| `DEVICE_RETURNED` | Rückgabezeitpunkt gesetzt | `device` | `assignment_id`, `employee_id`, `returned_at` |
+| `ASSIGNMENT_UPDATED` | Sonstige Korrektur einer Zuweisung | `device` | `assignment_id`, `changes` |
+| `ASSIGNMENT_DELETED` | Zuweisung gelöscht | `device` | Zuweisungsdaten |
+| `USER_CREATED` | Benutzerprofil angelegt | `user` | Profildaten inkl. Rollenname |
+| `USER_UPDATED` | Profildaten geändert (ohne Rolle) | `user` | `changes` mit altem und neuem Wert je Feld |
+| `USER_ROLE_CHANGED` | Benutzerrolle geändert | `user` | `old_role`, `new_role` |
+| `USER_DELETED` | Benutzerprofil gelöscht | `user` | Profildaten |
+
+Zuweisungen und Rückgaben werden beim betroffenen Gerät protokolliert. Dadurch lassen sich alle Einträge eines Gerätes für die Gerätedetailseite über `entity_type = 'device'` und `entity_id` abfragen, während das globale Audit-Log alle Einträge anzeigt.
+
+Neue Spalten in `devices`, `assignments` oder `profiles` werden automatisch in `changes` erfasst. Eine spätere Deaktivierung von Benutzern erscheint dadurch ohne weitere Anpassung als `USER_UPDATED`.
+
+### Umsetzung
+
+Die Einträge werden durch Datenbank-Trigger auf `devices`, `assignments` und `profiles` geschrieben (Migration `supabase/migrations/20261024120000_audit_logging.sql`). Dadurch wird jede Änderung unabhängig davon protokolliert, über welchen Weg sie in die Datenbank gelangt. Der Audit-Eintrag ist Teil derselben Transaktion: Wird eine Änderung zurückgerollt, entfällt auch der Eintrag (NFA-06).
+
+Der ausführende Benutzer wird über `auth.uid()` aus der Supabase-Sitzung ermittelt. Erfolgt eine Zuweisung oder Rückgabe ohne Benutzersitzung, wird `assigned_by` bzw. `returned_by` verwendet. Lässt sich kein Benutzer ermitteln, etwa bei Änderungen im Supabase-Dashboard, wird der Eintrag trotzdem mit leerem `user_id` geschrieben.
+
+### Berechtigungen
+
+| Rolle | Lesen | Anlegen, Ändern, Löschen |
+|---|---|---|
+| Administrator | alle Einträge | nein |
+| Gerätemanager | nein | nein |
+| Mitarbeiter | nein | nein |
+| nicht angemeldet | nein | nein |
+
+Einträge entstehen ausschließlich über die Trigger. Der Lesezugriff wird per Row Level Security geprüft (Migration `supabase/migrations/20261024130000_audit_log_read_access.sql`) und richtet sich nach der aktuellen Rolle in `profiles`. Wird einem Benutzer die Administratorrolle entzogen, verliert er den Zugriff sofort.
+
+Die Prüfung greift bei allen Anfragen mit Benutzersitzung. Ein Backend, das mit dem Supabase-Service-Key zugreift, umgeht Row Level Security und muss die Administratorrolle selbst prüfen.
 
 ### Beispiel
 
 ```json
 {
+  "user_id": "…",
   "action": "DEVICE_ASSIGNED",
   "entity_type": "device",
+  "entity_id": "…",
+  "entity_title": "NB-0001",
   "details": {
-    "employee_id": "..."
-  }
+    "assignment_id": "…",
+    "employee_id": "…",
+    "assigned_at": "2026-10-24T12:00:00+00:00"
+  },
+  "created_at": "2026-10-24T12:00:00+00:00"
 }
 ```
 

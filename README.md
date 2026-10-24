@@ -144,6 +144,14 @@ Die einzelnen Bereiche werden im Projektverlauf nicht ausschließlich sequenziel
 
 Das responsive React-/TypeScript-Grundgerüst befindet sich im Verzeichnis [`frontend`](frontend/README.md). Hinweise zum lokalen Start, zu den wiederverwendbaren UI-Komponenten und zu den Integrationspunkten für spätere Fachansichten sind dort dokumentiert.
 
+## Datenbank
+
+Die SQL-Migrationen der Supabase-Datenbank und die zugehörigen automatisierten Tests befinden sich im Verzeichnis [`supabase`](supabase/README.md).
+
+## Tests
+
+Automatisierte Tests laufen bei jedem Push und Pull Request über GitHub Actions. Aufbau, lokale Ausführung und noch offene Testfälle sind in [`docs/testing.md`](docs/testing.md) beschrieben.
+
 ## Sprint-Projektplan
 
 Die Entwicklung wird in mehrere zweiwöchige Sprints unterteilt. Die konkrete Auswahl und Priorisierung der Anforderungen erfolgt jeweils im Sprint Planning.
