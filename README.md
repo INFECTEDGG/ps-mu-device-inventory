@@ -17,7 +17,7 @@ Maximilian Stephan (223702) übernimmt die Rolle des **Product Owners**. Die üb
 - Louis Sämann (223519)
 - Ümit Emekse (220857)
 - Tom Jarolim (222880)
-- Manuel Pflaum (219241)
+- Michael Pflaum (219241)
 - Ali Ahmad (227308)
 - Guilliermo Morishige-Takane (224921)
 
