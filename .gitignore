@@ -1,4 +1,10 @@
+# Dependencies
 node_modules/
 dist/
 *.tsbuildinfo
 .DS_Store
+
+# Environment variables
+.env
+.env.*
+*.env
