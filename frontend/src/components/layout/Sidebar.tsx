@@ -1,5 +1,7 @@
+
 import { forwardRef, type MouseEvent } from 'react'
 import { navigationEntries } from '../../config/navigation'
+import { hasPermission, type Role } from '../../config/permissions'
 import { NavigationItem } from '../navigation/NavigationItem'
 import { AppIcon } from '../ui/AppIcon'
 
@@ -9,12 +11,22 @@ interface SidebarProps {
   isOpen: boolean
   onClose: () => void
   onNavigate: (path: string, event: MouseEvent<HTMLAnchorElement>) => void
+  role?: Role | null
 }
 
 export const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
-  { currentPath, isInteractive, isOpen, onClose, onNavigate },
+  { currentPath, isInteractive, isOpen, onClose, onNavigate, role },
   ref,
 ) {
+  // Menüpunkte anhand der Benutzerrolle filtern.
+  // Übergangsweise alle anzeigen, solange keine Rolle übergeben wird.
+  const visibleEntries =
+    role === undefined
+      ? navigationEntries
+      : navigationEntries.filter((entry) =>
+          hasPermission(role, entry.requiredPermission)
+        )
+
   return (
     <aside
       aria-hidden={!isInteractive}
@@ -40,7 +52,11 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
           </span>
         </a>
 
-        <button className="icon-button sidebar__close" type="button" onClick={onClose}>
+        <button
+          className="icon-button sidebar__close"
+          type="button"
+          onClick={onClose}
+        >
           <span className="sr-only">Navigation schließen</span>
           <AppIcon name="close" />
         </button>
@@ -50,7 +66,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
         <p className="sidebar__section-label">Arbeitsbereich</p>
         <nav aria-label="Bereiche">
           <ul className="sidebar__navigation">
-            {navigationEntries.map((entry) => (
+            {visibleEntries.map((entry) => (
               <NavigationItem
                 entry={entry}
                 isActive={currentPath === entry.path}
