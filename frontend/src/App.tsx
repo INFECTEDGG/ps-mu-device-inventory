@@ -7,19 +7,24 @@ import { useAppNavigation } from './hooks/useAppNavigation'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 
-export default function App() {
+interface AppProps {
+  role?: Role | null
+  isRoleLoading?: boolean
+  roleError?: string | null
+}
+
+export default function App({
+  role = null,
+  isRoleLoading = false,
+  roleError = null,
+}: AppProps) {
   const { currentPath, navigate } = useAppNavigation()
 
-  // Die Rolle wird später aus Michas Login-System übernommen.
-  // Ohne gültige Rolle werden geschützte Seiten gesperrt.
-  const role: Role | null = null
-
-  // Aktuelle Seite anhand des Pfads ermitteln
   const currentPage = navigationEntries.find(
     (entry) => entry.path === currentPath
   )
 
-  // Prüfen, ob die Rolle die benötigte Berechtigung besitzt
+  // Prüfen, ob der Benutzer diese Seite öffnen darf.
   const hasAccess = currentPage
     ? hasPermission(role, currentPage.requiredPermission)
     : false
@@ -43,6 +48,22 @@ export default function App() {
     >
       {!currentPage ? (
         <NotFoundPage onNavigate={navigate} />
+      ) : isRoleLoading ? (
+        <section aria-labelledby="page-title" aria-live="polite">
+          <h1 id="page-title" tabIndex={-1}>
+            Berechtigungen werden geladen
+          </h1>
+          <p>Bitte warten, während deine Benutzerrolle geprüft wird.</p>
+        </section>
+      ) : roleError ? (
+        <section aria-labelledby="page-title" role="alert">
+          <h1 id="page-title" tabIndex={-1}>
+            Fehler beim Laden
+          </h1>
+          <p>
+            Deine Berechtigungen konnten nicht geladen werden.
+          </p>
+        </section>
       ) : hasAccess ? (
         <PlaceholderPage page={currentPage} />
       ) : (
