@@ -15,8 +15,11 @@ interface AppLayoutProps {
   children: ReactNode
   currentPage: string
   currentPath: string
-  onNavigate: (path: string, event: MouseEvent<HTMLAnchorElement>) => void
-  role?: Role | null
+  onNavigate: (
+    path: string,
+    event: MouseEvent<HTMLAnchorElement>
+  ) => void
+  role: Role | null
 }
 
 const desktopNavigationQuery = '(min-width: 64.0625rem)'
@@ -26,9 +29,10 @@ export function AppLayout({
   currentPage,
   currentPath,
   onNavigate,
-  role = null,
+  role,
 }: AppLayoutProps) {
   const [isNavigationOpen, setIsNavigationOpen] = useState(false)
+
   const [isDesktop, setIsDesktop] = useState(() =>
     window.matchMedia(desktopNavigationQuery).matches
   )
@@ -77,6 +81,7 @@ export function AppLayout({
     )
 
     const firstElement = focusableElements?.item(0)
+
     const lastElement = focusableElements?.item(
       (focusableElements?.length ?? 1) - 1,
     )
@@ -96,7 +101,10 @@ export function AppLayout({
       if (event.shiftKey && document.activeElement === firstElement) {
         event.preventDefault()
         lastElement.focus()
-      } else if (!event.shiftKey && document.activeElement === lastElement) {
+      } else if (
+        !event.shiftKey &&
+        document.activeElement === lastElement
+      ) {
         event.preventDefault()
         firstElement.focus()
       }

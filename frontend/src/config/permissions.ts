@@ -14,6 +14,7 @@ export type Permission =
   | 'audit:view'
   | 'settings:view'
 
+// Berechtigungen der einzelnen Benutzerrollen
 export const rolePermissions: Record<Role, readonly Permission[]> = {
   admin: [
     'dashboard:view',
@@ -48,6 +49,8 @@ export const rolePermissions: Record<Role, readonly Permission[]> = {
   ],
 }
 
+// Prüft, ob die Benutzerrolle eine Berechtigung besitzt.
+// Ohne gueltige Rolle wird kein Zugriff gewaehrt.
 export function hasPermission(
   role: Role | null | undefined,
   permission: Permission
@@ -56,5 +59,5 @@ export function hasPermission(
     return false
   }
 
-  return rolePermissions[role].includes(permission)
+  return rolePermissions[role]?.includes(permission) ?? false
 }
