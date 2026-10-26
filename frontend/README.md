@@ -5,7 +5,7 @@ die Fachseiten für Geräte, Zuweisungen und Benutzerverwaltung sind noch Platzh
 
 ## Starten
 
-Node.js 24 wird für die Entwicklung und Tests verwendet.
+Voraussetzung ist Node.js 22 oder neuer. Für die Tests wird Node.js 24 verwendet.
 `frontend/.env.example` nach `frontend/.env.local` kopieren und die Supabase-URL
 sowie den öffentlichen Publishable Key eintragen. Die lokale Datei bleibt außerhalb
 von Git. Secret- und Service-Role-Keys gehören nicht ins Frontend.
@@ -15,6 +15,10 @@ cd frontend
 npm ci
 npm run dev
 ```
+
+Die Anwendung startet unter `http://localhost:28216`.
+Für ein Deployment müssen die Supabase-Variablen auch in der Hosting-Umgebung
+hinterlegt werden.
 
 ```bash
 npm test        # Tests
