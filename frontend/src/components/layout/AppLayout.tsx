@@ -8,17 +8,19 @@ import {
 } from 'react'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
+import type { Role } from '../../config/permissions'
 
 interface AppLayoutProps {
   children: ReactNode
   currentPage: string
   currentPath: string
   onNavigate: (path: string, event: MouseEvent<HTMLAnchorElement>) => void
+  role: Role | null
 }
 
 const desktopNavigationQuery = '(min-width: 64.0625rem)'
 
-export function AppLayout({ children, currentPage, currentPath, onNavigate }: AppLayoutProps) {
+export function AppLayout({ children, currentPage, currentPath, onNavigate, role }: AppLayoutProps) {
   const [isNavigationOpen, setIsNavigationOpen] = useState(false)
   const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(desktopNavigationQuery).matches)
   const navigationRef = useRef<HTMLElement>(null)
@@ -93,6 +95,7 @@ export function AppLayout({ children, currentPage, currentPath, onNavigate }: Ap
       <a className="skip-link" href="#main-content">Zum Hauptinhalt springen</a>
 
       <Sidebar
+        role={role}
         currentPath={currentPath}
         isInteractive={navigationIsInteractive}
         isOpen={isNavigationOpen}
