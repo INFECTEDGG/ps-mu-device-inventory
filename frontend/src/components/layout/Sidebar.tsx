@@ -1,9 +1,11 @@
 import { forwardRef, type MouseEvent } from 'react'
 import { navigationEntries } from '../../config/navigation'
+import { hasPermission, type Role } from '../../config/permissions'
 import { NavigationItem } from '../navigation/NavigationItem'
 import { AppIcon } from '../ui/AppIcon'
 
 interface SidebarProps {
+  role: Role | null
   currentPath: string
   isInteractive: boolean
   isOpen: boolean
@@ -12,7 +14,7 @@ interface SidebarProps {
 }
 
 export const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
-  { currentPath, isInteractive, isOpen, onClose, onNavigate },
+  { currentPath, isInteractive, isOpen, onClose, onNavigate, role },
   ref,
 ) {
   return (
@@ -50,7 +52,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
         <p className="sidebar__section-label">Arbeitsbereich</p>
         <nav aria-label="Bereiche">
           <ul className="sidebar__navigation">
-            {navigationEntries.map((entry) => (
+            {navigationEntries.filter((entry) => hasPermission(role, entry.requiredPermission)).map((entry) => (
               <NavigationItem
                 entry={entry}
                 isActive={currentPath === entry.path}

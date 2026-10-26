@@ -1,4 +1,5 @@
-import { forwardRef } from 'react'
+import { forwardRef, useState } from 'react'
+import { logout } from '../../lib/logout'
 import { AppIcon } from '../ui/AppIcon'
 
 interface HeaderProps {
@@ -11,6 +12,24 @@ export const Header = forwardRef<HTMLButtonElement, HeaderProps>(function Header
   { currentPage, isNavigationOpen, onOpenNavigation },
   ref,
 ) {
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
+
+  async function handleLogout() {
+    if (isLoggingOut) return
+
+    setIsLoggingOut(true)
+    setLogoutError('')
+
+    try {
+      await logout()
+    } catch {
+      setLogoutError('Die Abmeldung ist fehlgeschlagen. Bitte versuche es erneut.')
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
+
   return (
     <header className="topbar">
       <button
@@ -31,7 +50,17 @@ export const Header = forwardRef<HTMLButtonElement, HeaderProps>(function Header
         <span className="topbar__page">{currentPage}</span>
       </div>
 
-      <span className="topbar__badge">Oberfläche</span>
+      <button
+        aria-busy={isLoggingOut}
+        className="topbar__logout"
+        disabled={isLoggingOut}
+        onClick={handleLogout}
+        type="button"
+      >
+        {isLoggingOut ? 'Abmeldung läuft …' : 'Abmelden'}
+      </button>
+
+      {logoutError && <p className="topbar__logout-error" role="alert">{logoutError}</p>}
     </header>
   )
 })
