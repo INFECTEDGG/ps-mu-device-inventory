@@ -11,6 +11,7 @@ import { AccountAccessPage } from './pages/AccountAccessPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { UserManagementPage } from './features/users/UserManagementPage'
 
 export default function App() {
   // Authentifizierung und Benutzerrolle über Micha
@@ -111,6 +112,8 @@ export default function App() {
             description="Du hast keine Berechtigung, diese Seite aufzurufen."
           />
         </PageContainer>
+      ) : currentPath === '/benutzerverwaltung' ? (
+        <UserManagementPage />
       ) : (
         <PlaceholderPage page={currentPage} />
       )}

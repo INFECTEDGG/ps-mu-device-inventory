@@ -1,7 +1,7 @@
 
  // @vitest-environment jsdom
 
-import type { ReactNode } from 'react'
+import { createElement, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import {
   afterEach,
@@ -30,15 +30,19 @@ vi.mock('./hooks/useAuthSession', () => ({
 
 // Layout isolieren
 vi.mock('./components/layout/AppLayout', () => ({
-  AppLayout: ({ children }: { children: ReactNode }) => (
-    <div>{children}</div>
-  ),
+  AppLayout: ({ children }: { children: ReactNode }) =>
+    createElement('div', null, children),
 }))
 
 vi.mock('./pages/PlaceholderPage', () => ({
   PlaceholderPage: () => (
     <div>Geschützter Seiteninhalt</div>
   ),
+}))
+
+// Die Fachseite wird separat getestet; hier wird nur der Route-Zugriff geprüft.
+vi.mock('./features/users/UserManagementPage', () => ({
+  UserManagementPage: () => <div>Geschützter Seiteninhalt</div>,
 }))
 
 vi.mock('./pages/NotFoundPage', () => ({
