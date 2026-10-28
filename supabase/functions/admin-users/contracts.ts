@@ -1,6 +1,6 @@
 // Shared request validation. Never put passwords into responses or logs.
 export type AdminUserCommand =
-  | { action: 'list'; page: number; search: string }
+  | { action: 'list'; page: number; search: string; status: 'active' | 'disabled' }
   | {
       action: 'create'
       first_name: string
@@ -51,7 +51,7 @@ export function parseCommand(value: unknown): AdminUserCommand {
     return invalid()
   const input = value as Record<string, unknown>
   const keys: Record<string, string[]> = {
-    list: ['action', 'page', 'search'],
+    list: ['action', 'page', 'search', 'status'],
     create: ['action', 'first_name', 'last_name', 'email', 'password'],
     update: ['action', 'id', 'first_name', 'last_name'],
     deactivate: ['action', 'id'],
@@ -80,13 +80,15 @@ export function parseCommand(value: unknown): AdminUserCommand {
       (input.page as number) < 0 ||
       (input.page as number) > 100000 ||
       typeof input.search !== 'string' ||
-      input.search.length > 100
+      input.search.length > 100 ||
+      (input.status !== undefined && input.status !== 'active' && input.status !== 'disabled')
     )
       return invalid()
     return {
       action: 'list',
       page: input.page as number,
       search: input.search.trim(),
+      status: (input.status ?? 'active') as 'active' | 'disabled',
     }
   }
   const id = input.id

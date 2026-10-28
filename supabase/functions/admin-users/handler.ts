@@ -116,6 +116,7 @@ export function createAdminHandler(
           await rpc('inventory_admin_list_users', {
             page_number: command.page,
             search_text: command.search,
+            list_status: command.status,
           }),
         )
       }

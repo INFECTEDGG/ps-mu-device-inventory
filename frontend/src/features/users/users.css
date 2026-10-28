@@ -164,3 +164,19 @@
 .users-permission-table td { text-align: center; }
 .users-permission-checkbox { display: inline-flex !important; justify-content: center; min-width: 2.5rem; }
 .users-permission-checkbox input { width: 1.1rem; height: 1.1rem; min-height: unset; }
+
+/* Admin-only view selector. Both views use server-filtered search and pagination. */
+.users-status-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+.users-status-filter .users-status-filter--selected {
+  color: var(--color-primary);
+  background: #eef3ff;
+  border-color: var(--color-primary);
+}
+.users-status-filter .users-button[aria-pressed='true'] {
+  cursor: default;
+}

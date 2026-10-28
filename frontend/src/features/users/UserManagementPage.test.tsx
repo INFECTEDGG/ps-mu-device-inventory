@@ -204,3 +204,42 @@ describe('Benutzerverwaltung', () => {
   })
 
 })
+
+
+describe('Benutzerlisten nach Kontostatus', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+    auth()
+    vi.mocked(userApi.list).mockImplementation(async (_page, _search, status) =>
+      status === 'disabled'
+        ? { users: [{ ...user, disabled_at: '2026-10-28T08:00:00Z', login_blocked: true }], total: 1 }
+        : { users: [{ ...user, id: '00000000-0000-4000-8000-000000000003', email: 'active@example.invalid' }], total: 1 },
+    )
+  })
+  afterEach(cleanup)
+
+  it('zeigt zuerst aktive Nutzer und lädt deaktivierte Nutzer erst nach Umschalten', async () => {
+    render(<UserManagementPage />)
+    expect(await screen.findByText('active@example.invalid')).toBeTruthy()
+    expect(userApi.list).toHaveBeenCalledWith(0, '', 'active')
+    fireEvent.click(screen.getByRole('button', { name: 'Deaktivierte Benutzer' }))
+    expect(await screen.findByText('kim@example.invalid')).toBeTruthy()
+    expect(screen.getByText('Deaktiviert')).toBeTruthy()
+    expect(userApi.list).toHaveBeenCalledWith(0, '', 'disabled')
+    expect(screen.queryByText('active@example.invalid')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Aktive Benutzer' }))
+    expect(await screen.findByText('active@example.invalid')).toBeTruthy()
+  })
+
+  it('übernimmt den Suchbegriff für den gewählten Status und startet auf Seite 1', async () => {
+    render(<UserManagementPage />)
+    await screen.findByText('active@example.invalid')
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Benutzer suchen' }), {
+      target: { value: 'Kim' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Suchen' }))
+    await waitFor(() => expect(userApi.list).toHaveBeenCalledWith(0, 'Kim', 'active'))
+    fireEvent.click(screen.getByRole('button', { name: 'Deaktivierte Benutzer' }))
+    await waitFor(() => expect(userApi.list).toHaveBeenCalledWith(0, 'Kim', 'disabled'))
+  })
+})

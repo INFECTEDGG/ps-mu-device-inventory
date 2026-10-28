@@ -68,8 +68,8 @@ async function call(command: AdminUserCommand): Promise<unknown> {
 }
 
 export const userApi = {
-  async list(page: number, search: string): Promise<UserPage> {
-    const data = await call({ action: 'list', page, search })
+  async list(page: number, search: string, status: 'active' | 'disabled' = 'active'): Promise<UserPage> {
+    const data = await call({ action: 'list', page, search, status })
     if (!data || typeof data !== 'object')
       throw new UserApiError('Ungültige Serverantwort.', 'invalid_response')
     const result = data as Partial<UserPage>

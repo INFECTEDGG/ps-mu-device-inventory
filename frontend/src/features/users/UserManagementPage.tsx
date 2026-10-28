@@ -34,6 +34,7 @@ export function UserManagementPage() {
   const [result, setResult] = useState<UserPage>({ users: [], total: 0 })
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'active' | 'disabled'>('active')
   const [page, setPage] = useState(0)
   const [version, setVersion] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -60,7 +61,7 @@ export function UserManagementPage() {
     setLoading(true)
     if (!allowed) return
     void userApi
-      .list(page, search)
+      .list(page, search, statusFilter)
       .then((data) => {
         if (active) setResult(data)
       })
@@ -78,7 +79,7 @@ export function UserManagementPage() {
     return () => {
       active = false
     }
-  }, [allowed, userId, page, search, version])
+  }, [allowed, userId, page, search, statusFilter, version])
 
   useEffect(() => {
     setEditor(null)
@@ -194,7 +195,8 @@ export function UserManagementPage() {
       >
         <div className="users-toolbar">
           <h2 id="users-title">
-            Benutzer <span className="users-count">{result.total}</span>
+            {statusFilter === 'active' ? 'Aktive Benutzer' : 'Deaktivierte Benutzer'}{' '}
+            <span className="users-count">{result.total}</span>
           </h2>
           <button
             ref={newButton}
@@ -203,6 +205,38 @@ export function UserManagementPage() {
             onClick={(event) => open('create', null, event.currentTarget)}
           >
             Benutzer anlegen
+          </button>
+        </div>
+        <div className="users-status-filter" role="group" aria-label="Kontostatus filtern">
+          <button
+            type="button"
+            className={`users-button ${statusFilter === 'active' ? 'users-status-filter--selected' : ''}`}
+            aria-pressed={statusFilter === 'active'}
+            disabled={editor !== null || saving}
+            onClick={() => {
+              if (statusFilter === 'active') return
+              setLoading(true)
+              setResult({ users: [], total: 0 })
+              setPage(0)
+              setStatusFilter('active')
+            }}
+          >
+            Aktive Benutzer
+          </button>
+          <button
+            type="button"
+            className={`users-button ${statusFilter === 'disabled' ? 'users-status-filter--selected' : ''}`}
+            aria-pressed={statusFilter === 'disabled'}
+            disabled={editor !== null || saving}
+            onClick={() => {
+              if (statusFilter === 'disabled') return
+              setLoading(true)
+              setResult({ users: [], total: 0 })
+              setPage(0)
+              setStatusFilter('disabled')
+            }}
+          >
+            Deaktivierte Benutzer
           </button>
         </div>
         <form
@@ -246,7 +280,9 @@ export function UserManagementPage() {
               <p>
                 {search
                   ? 'Keine passenden Benutzer gefunden.'
-                  : 'Keine Benutzer auf dieser Seite vorhanden.'}
+                  : statusFilter === 'disabled'
+                    ? 'Keine deaktivierten Benutzer vorhanden.'
+                    : 'Keine aktiven Benutzer auf dieser Seite vorhanden.'}
               </p>
             ) : (
               <div

@@ -201,3 +201,25 @@ test('permission changes are routed to SuperAdmin-only RPC', async () => {
   assert.equal(calls[1].name,'inventory_superadmin_update_permissions')
   assert.deepEqual(calls[1].args,{target_role:'employee',selected_permissions:['dashboard:view']})
 })
+
+test('list defaults to active, supports disabled view and rejects unsupported status', async () => {
+  const expected = {action:'list',page:0,search:'Kim',status:'active'}
+  assert.deepEqual(parseCommand({action:'list',page:0,search:'  Kim  '}), expected)
+  assert.deepEqual(parseCommand({action:'list',page:0,search:'  Kim  ',status:'active'}), expected)
+  assert.deepEqual(parseCommand({action:'list',page:0,search:'',status:'disabled'}),
+    {action:'list',page:0,search:'',status:'disabled'})
+  assert.throws(() => parseCommand({action:'list',page:0,search:'',status:'all'}))
+  assert.throws(() => parseCommand({action:'list',page:0,search:'',status:true}))
+  assert.throws(() => parseCommand({action:'list',page:0,search:'',status:'disabled',admin:true}))
+})
+
+test('disabled-user list uses the secured DB function with explicit view argument', async () => {
+  const {send,calls} = fixture({async rpc(token,name,args) {
+    calls.push({token,name,args})
+    return {data:{users:[],total:0},error:null}
+  }})
+  const resp = await send({action:'list',page:1,search:' Jane ',status:'disabled'})
+  assert.equal(resp.status,200)
+  assert.deepEqual(calls.map(call=>call.name),['inventory_admin_check','inventory_admin_list_users'])
+  assert.deepEqual(calls[1].args,{page_number:1,search_text:'Jane',list_status:'disabled'})
+})
