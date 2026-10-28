@@ -173,3 +173,31 @@ test('rejects unknown browser origins and hides internal error details', async (
   const text = await (await send(input)).text()
   assert.equal(text.includes('credentials'), false)
 })
+
+test('only explicit role assignment actions accepted; never super_admin', () => {
+  assert.deepEqual(parseCommand({action:'assign_role',id,role:'admin'}), {action:'assign_role',id,role:'admin'})
+  assert.throws(() => parseCommand({action:'assign_role',id,role:'super_admin'}))
+  assert.throws(() => parseCommand({action:'assign_role',id,role:'admin',force:true}))
+  assert.throws(() => parseCommand({action:'permission_update',role:'super_admin',permissions:[]}))
+  assert.throws(() => parseCommand({action:'permission_update',role:'admin',permissions:'users:manage'}))
+})
+test('role change uses only caller-authorised RPC, not direct profile writes', async () => {
+  const {send,calls} = fixture()
+  assert.equal((await send({action:'assign_role',id,role:'device_manager'})).status,200)
+  assert.deepEqual(calls.map(c=>c.name),['inventory_admin_check','inventory_admin_assign_role'])
+  assert.deepEqual(calls[1].args,{target_id:id,target_role:'device_manager'})
+})
+test('admin promotion fails when DB denies it', async () => {
+  const {send} = fixture({async rpc(_token,name) {
+    return {data:true,error:name==='inventory_admin_assign_role'?{code:'42501'}:null}
+  }})
+  const resp = await send({action:'assign_role',id,role:'admin'})
+  assert.equal(resp.status,403)
+  assert.equal((await resp.json()).code,'forbidden')
+})
+test('permission changes are routed to SuperAdmin-only RPC', async () => {
+  const {send,calls} = fixture()
+  assert.equal((await send({action:'permission_update',role:'employee',permissions:['dashboard:view']})).status,200)
+  assert.equal(calls[1].name,'inventory_superadmin_update_permissions')
+  assert.deepEqual(calls[1].args,{target_role:'employee',selected_permissions:['dashboard:view']})
+})

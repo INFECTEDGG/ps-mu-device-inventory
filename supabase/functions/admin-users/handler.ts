@@ -93,6 +93,23 @@ export function createAdminHandler(
         throw new AdminUserError(400, 'invalid_input', 'Ungültige Anfrage.')
       }
       const command = parseCommand(body)
+      if (command.action === 'permission_list') {
+        return respond(200, await rpc('inventory_superadmin_list_permissions'))
+      }
+      if (command.action === 'permission_update') {
+        await rpc('inventory_superadmin_update_permissions', {
+          target_role: command.role,
+          selected_permissions: command.permissions,
+        })
+        return respond(200, { ok: true })
+      }
+      if (command.action === 'assign_role') {
+        await rpc('inventory_admin_assign_role', {
+          target_id: command.id,
+          target_role: command.role,
+        })
+        return respond(200, { ok: true })
+      }
       if (command.action === 'list') {
         return respond(
           200,

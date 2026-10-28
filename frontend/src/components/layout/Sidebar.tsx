@@ -1,7 +1,7 @@
 
 import { forwardRef, type MouseEvent } from 'react'
 import { navigationEntries } from '../../config/navigation'
-import { hasPermission, type Role } from '../../config/permissions'
+import { hasPermission, type Permission, type Role } from '../../config/permissions'
 import { NavigationItem } from '../navigation/NavigationItem'
 import { AppIcon } from '../ui/AppIcon'
 
@@ -15,6 +15,7 @@ interface SidebarProps {
     event: MouseEvent<HTMLAnchorElement>
   ) => void
   role: Role | null
+  permissions?: readonly Permission[] | null
 }
 
 export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
@@ -26,13 +27,14 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
       onClose,
       onNavigate,
       role,
+      permissions,
     },
     ref,
   ) {
     // Nur Menüpunkte anzeigen, für die der Benutzer
     // die erforderliche Berechtigung besitzt.
     const visibleEntries = navigationEntries.filter((entry) =>
-      hasPermission(role, entry.requiredPermission)
+      hasPermission(role, entry.requiredPermission, permissions)
     )
 
     return (

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { PageContainer } from '../../components/ui/PageContainer'
 import { PageHeader } from '../../components/ui/PageHeader'
-import { hasPermission } from '../../config/permissions'
+import { canAssignRole, hasPermission, type Role } from '../../config/permissions'
 import { useAuthSession } from '../../hooks/useAuthSession'
 import {
   UserApiError,
@@ -11,25 +11,26 @@ import {
 } from './userApi'
 import './users.css'
 
-const labels = {
+const labels: Record<Role, string> = {
+  super_admin: 'SuperAdmin',
   admin: 'Administrator',
   device_manager: 'Gerätemanager',
   employee: 'Mitarbeiter',
 }
 type Editor = {
-  kind: 'create' | 'edit' | 'deactivate'
+  kind: 'create' | 'edit' | 'deactivate' | 'role'
   user: ManagedUser | null
 }
 const emptyForm = { first_name: '', last_name: '', email: '', password: '' }
 
 export function UserManagementPage() {
-  const { session, role, userId, isLoading, isRoleLoading, reloadProfile } =
+  const { session, role, permissions, userId, isLoading, isRoleLoading, reloadProfile } =
     useAuthSession()
   const allowed =
     !!session &&
     !isLoading &&
     !isRoleLoading &&
-    hasPermission(role, 'users:manage')
+    hasPermission(role, 'users:manage', permissions)
   const [result, setResult] = useState<UserPage>({ users: [], total: 0 })
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
@@ -41,9 +42,11 @@ export function UserManagementPage() {
   const [editor, setEditor] = useState<Editor | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [formError, setFormError] = useState('')
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'device_manager' | 'employee'>('employee')
   const [saving, setSaving] = useState(false)
   const busy = useRef(false)
   const firstInput = useRef<HTMLInputElement>(null)
+  const roleInput = useRef<HTMLSelectElement>(null)
   const cancelButton = useRef<HTMLButtonElement>(null)
   const trigger = useRef<HTMLButtonElement | null>(null)
   const newButton = useRef<HTMLButtonElement>(null)
@@ -85,6 +88,7 @@ export function UserManagementPage() {
 
   useEffect(() => {
     if (editor?.kind === 'deactivate') cancelButton.current?.focus()
+    else if (editor?.kind === 'role') roleInput.current?.focus()
     else if (editor) firstInput.current?.focus()
   }, [editor])
 
@@ -101,6 +105,7 @@ export function UserManagementPage() {
       password: '',
     })
     setFormError('')
+    setSelectedRole(user?.role === 'admin' ? 'admin' : user?.role === 'device_manager' ? 'device_manager' : 'employee')
     setMessage('')
     setEditor({ kind, user })
   }
@@ -124,6 +129,7 @@ export function UserManagementPage() {
     const identity = userId
     try {
       if (editor.kind === 'create') await userApi.create(form)
+      else if (editor.kind === 'role' && editor.user) await userApi.assignRole(editor.user.id, selectedRole)
       else if (editor.kind === 'edit' && editor.user)
         await userApi.update(editor.user.id, {
           first_name: form.first_name,
@@ -136,6 +142,8 @@ export function UserManagementPage() {
           ? 'Benutzer angelegt.'
           : editor.kind === 'edit'
             ? 'Benutzerdaten gespeichert.'
+            : editor.kind === 'role'
+              ? 'Rolle gespeichert. Der Benutzer muss sich erneut anmelden.'
             : 'Benutzer deaktiviert. Anmeldung und geschützte Zugriffe sind gesperrt.',
       )
       if (editor.user?.id === userId) reloadProfile()
@@ -288,7 +296,7 @@ export function UserManagementPage() {
                           <div className="users-actions">
                             <button
                               className="users-button"
-                              disabled={editor !== null || saving}
+                              disabled={editor !== null || saving || (role !== 'super_admin' && ['admin','super_admin'].includes(user.role) && user.id !== userId) || (user.role === 'super_admin' && user.id !== userId)}
                               aria-label={`${user.first_name ?? ''} ${user.last_name ?? ''} bearbeiten`}
                               onClick={(event) =>
                                 open('edit', user, event.currentTarget)
@@ -296,13 +304,21 @@ export function UserManagementPage() {
                             >
                               Bearbeiten
                             </button>
+                            {!user.disabled_at && (['employee','device_manager','admin'] as Role[]).some(target => canAssignRole(role, user.role, target, user.id === userId)) && (
+                              <button className="users-button" disabled={editor !== null || saving}
+                                onClick={(event) => open('role', user, event.currentTarget)}>
+                                Rolle zuweisen
+                              </button>
+                            )}
                             {(!user.disabled_at || !user.login_blocked) && (
                               <button
                                 className="users-button users-button--danger"
                                 disabled={
                                   editor !== null ||
                                   saving ||
-                                  user.id === userId
+                                  user.id === userId ||
+                                  user.role === 'super_admin' ||
+                                  (role !== 'super_admin' && user.role === 'admin')
                                 }
                                 title={
                                   user.id === userId
@@ -358,10 +374,23 @@ export function UserManagementPage() {
               ? 'Benutzer anlegen'
               : editor.kind === 'edit'
                 ? 'Benutzer bearbeiten'
-                : 'Benutzer deaktivieren'}
+                : editor.kind === 'role'
+                  ? 'Rolle zuweisen'
+                  : 'Benutzer deaktivieren'}
           </h2>
           <form onSubmit={submit} aria-busy={saving}>
-            {editor.kind === 'deactivate' ? (
+            {editor.kind === 'role' ? (
+              <div className="users-role-editor">
+                <p className="users-help">Die neue Rolle wird sofort gespeichert. Aktive Sitzungen des Benutzers werden widerrufen.</p>
+                <label htmlFor="assigned-role">Neue Rolle</label>
+                <select id="assigned-role" ref={roleInput} value={selectedRole} disabled={saving}
+                  onChange={event => setSelectedRole(event.target.value as typeof selectedRole)}>
+                  <option value="employee">Mitarbeiter</option>
+                  <option value="device_manager">Gerätemanager</option>
+                  {role === 'super_admin' && <option value="admin">Administrator</option>}
+                </select>
+              </div>
+            ) : editor.kind === 'deactivate' ? (
               <p>
                 „
                 {[editor.user?.first_name, editor.user?.last_name]
@@ -375,7 +404,7 @@ export function UserManagementPage() {
                 <p className="users-help">
                   {editor.kind === 'create'
                     ? 'Neue Benutzer erhalten die Rolle Mitarbeiter. Der Administrator bestätigt die E-Mail-Zuordnung und übermittelt das initiale Passwort über einen sicheren Kanal.'
-                    : 'Bearbeitet werden Vor- und Nachname. E-Mail, Passwort und Rolle bleiben unverändert.'}
+                    : 'Bearbeitet werden Vor- und Nachname. E-Mail, Passwort und Rolle werden hier nicht geändert.'}
                 </p>
                 <fieldset className="users-fields" disabled={saving}>
                   <legend className="sr-only">Benutzerdaten</legend>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import type { Role } from '../config/permissions'
-import { serverSessionGuardEnabled } from '../config/auth'
+import { isPermission, type Role, type Permission } from '../config/permissions'
+import { dynamicRolePermissionsEnabled, serverSessionGuardEnabled } from '../config/auth'
 import { supabase } from '../lib/supabase'
 import { getSessionActivityKey, getSupabaseSessionId } from '../lib/sessionKey'
 import { watchSessionActivity } from '../lib/sessionActivity'
@@ -26,6 +26,7 @@ const roleLookup = createRoleLookup()
 interface RoleState {
   key: string | null
   role: Role | null
+  permissions: readonly Permission[] | null
   error: string | null
 }
 
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [sessionNotice, setSessionNotice] = useState<string | null>(null)
-  const [roleState, setRoleState] = useState<RoleState>({ key: null, role: null, error: null })
+  const [roleState, setRoleState] = useState<RoleState>({ key: null, role: null, permissions: null, error: null })
   const [profileVersion, setProfileVersion] = useState(0)
   const [serverVersion, setServerVersion] = useState(0)
   const [serverState, setServerState] = useState<ServerSessionState>({ key: null, error: null })
@@ -128,15 +129,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!roleKey || !userId || !serverReady) return
     let cancelled = false
 
-    void loadUserRole(userId, roleLookup).then(
-      (role) => {
-        if (!cancelled) setRoleState({ key: roleKey, role, error: null })
+    void (async () => {
+      const role = await loadUserRole(userId, roleLookup)
+      if (!dynamicRolePermissionsEnabled) return { role, permissions: null }
+      if (!supabase) throw new UserRoleError('unavailable')
+      // Strict server-authoritative permissions; never grant fallback rights after an RPC failure.
+      const { data, error } = await supabase.rpc('inventory_my_permissions')
+      if (error || !Array.isArray(data) || data.some(value => !isPermission(value))) {
+        throw new UserRoleError('unavailable')
+      }
+      return { role, permissions: data as Permission[] }
+    })().then(
+      ({ role, permissions }) => {
+        if (!cancelled) setRoleState({ key: roleKey, role, permissions, error: null })
       },
       (error: unknown) => {
         if (!cancelled) {
           setRoleState({
             key: roleKey,
             role: null,
+            permissions: null,
             error: error instanceof UserRoleError
               ? error.message
               : 'Deine Zugriffsberechtigungen konnten nicht geladen werden. Bitte versuche es erneut.',
@@ -159,6 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: session?.user ?? null,
     userId,
     role: serverReady && currentRole ? roleState.role : null,
+    permissions: serverReady && currentRole ? roleState.permissions : null,
     isLoading,
     isRoleLoading: Boolean(session) && (
       (serverSessionGuardEnabled && !serverChecked) || (serverReady && !currentRole)

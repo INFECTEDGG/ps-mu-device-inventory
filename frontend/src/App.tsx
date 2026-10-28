@@ -11,6 +11,7 @@ import { AccountAccessPage } from './pages/AccountAccessPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { RolePermissionsPage } from './features/roles/RolePermissionsPage'
 import { UserManagementPage } from './features/users/UserManagementPage'
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
   const {
     session,
     role,
+    permissions,
     isLoading,
     isRoleLoading,
     profileError,
@@ -34,7 +36,7 @@ export default function App() {
   // RBAC: Prüfen, ob die Benutzerrolle
   // die erforderliche Seitenberechtigung besitzt.
   const hasAccess = currentPage
-    ? hasPermission(role, currentPage.requiredPermission)
+    ? hasPermission(role, currentPage.requiredPermission, permissions)
     : false
 
   // Während Authentifizierung und Rollenprüfung
@@ -102,6 +104,7 @@ export default function App() {
       currentPath={currentPath}
       onNavigate={navigate}
       role={role}
+      permissions={permissions}
     >
       {!currentPage ? (
         <NotFoundPage onNavigate={navigate} />
@@ -112,6 +115,8 @@ export default function App() {
             description="Du hast keine Berechtigung, diese Seite aufzurufen."
           />
         </PageContainer>
+      ) : currentPath === '/rollenverwaltung' ? (
+        <RolePermissionsPage />
       ) : currentPath === '/benutzerverwaltung' ? (
         <UserManagementPage />
       ) : (

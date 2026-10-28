@@ -40,6 +40,13 @@ export const navigationEntries: readonly NavigationEntry[] = [
     requiredPermission: 'users:manage',
   },
   {
+    label: 'Rollen & Berechtigungen',
+    path: '/rollenverwaltung',
+    icon: 'settings',
+    description: 'Rollenberechtigungen zentral verwalten.',
+    requiredPermission: 'permissions:manage',
+  },
+  {
     label: 'Einstellungen',
     path: '/einstellungen',
     icon: 'settings',

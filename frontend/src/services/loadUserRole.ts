@@ -49,6 +49,7 @@ export class UserRoleError extends Error {
 // Überprüft, ob der Rollenname gültig ist
 function isValidRole(value: unknown): value is Role {
   return (
+    value === 'super_admin' ||
     value === 'admin' ||
     value === 'device_manager' ||
     value === 'employee'

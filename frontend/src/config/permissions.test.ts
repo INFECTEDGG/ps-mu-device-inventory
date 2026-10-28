@@ -1,8 +1,22 @@
 
 import { describe, expect, it } from 'vitest'
-import { hasPermission } from './permissions'
+import { hasPermission, canAssignRole } from './permissions'
 
 describe('Rollen und Berechtigungen', () => {
+  it('Nur SuperAdmin darf Admin ernennen und Rechte ändern', () => {
+    expect(hasPermission('super_admin', 'permissions:manage')).toBe(true)
+    expect(hasPermission('admin', 'permissions:manage')).toBe(false)
+    expect(canAssignRole('admin', 'employee', 'admin', false)).toBe(false)
+    expect(canAssignRole('super_admin', 'employee', 'admin', false)).toBe(true)
+    expect(canAssignRole('super_admin', 'super_admin', 'admin', false)).toBe(false)
+    expect(canAssignRole('super_admin', 'employee', 'super_admin', false)).toBe(false)
+    expect(canAssignRole('super_admin', 'employee', 'admin', true)).toBe(false)
+  })
+  it('Bei dynamisch geladenen Rechten gilt die Serverliste', () => {
+    expect(hasPermission('admin', 'devices:manage', [])).toBe(false)
+    expect(hasPermission('employee', 'devices:manage', ['devices:manage'])).toBe(true)
+    expect(hasPermission(null, 'devices:manage', ['devices:manage'])).toBe(false)
+  })
   it('Admin darf Benutzer verwalten', () => {
     expect(hasPermission('admin', 'users:manage')).toBe(true)
   })

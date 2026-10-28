@@ -10,13 +10,16 @@ export type AdminUserCommand =
     }
   | { action: 'update'; id: string; first_name: string; last_name: string }
   | { action: 'deactivate'; id: string }
+  | { action: 'assign_role'; id: string; role: 'admin' | 'device_manager' | 'employee' }
+  | { action: 'permission_list' }
+  | { action: 'permission_update'; role: 'admin' | 'device_manager' | 'employee'; permissions: string[] }
 
 export interface ManagedUser {
   id: string
   first_name: string | null
   last_name: string | null
   email: string | null
-  role: 'admin' | 'device_manager' | 'employee'
+  role: 'super_admin' | 'admin' | 'device_manager' | 'employee'
   disabled_at: string | null
   login_blocked: boolean
 }
@@ -52,6 +55,9 @@ export function parseCommand(value: unknown): AdminUserCommand {
     create: ['action', 'first_name', 'last_name', 'email', 'password'],
     update: ['action', 'id', 'first_name', 'last_name'],
     deactivate: ['action', 'id'],
+    assign_role: ['action', 'id', 'role'],
+    permission_list: ['action'],
+    permission_update: ['action', 'role', 'permissions'],
   }
   if (typeof input.action !== 'string' || !Object.hasOwn(keys, input.action))
     return invalid()
@@ -61,6 +67,13 @@ export function parseCommand(value: unknown): AdminUserCommand {
     )
   )
     return invalid()
+  if (input.action === 'permission_list') return { action: 'permission_list' }
+  if (input.action === 'permission_update') {
+    if (!['admin', 'device_manager', 'employee'].includes(input.role as string)
+      || !Array.isArray(input.permissions) || input.permissions.length > 9
+      || input.permissions.some((value: unknown) => typeof value !== 'string' || value.length > 64)) return invalid()
+    return { action: 'permission_update', role: input.role as 'admin' | 'device_manager' | 'employee', permissions: input.permissions as string[] }
+  }
   if (input.action === 'list') {
     if (
       !Number.isSafeInteger(input.page) ||
@@ -85,6 +98,10 @@ export function parseCommand(value: unknown): AdminUserCommand {
       ))
   )
     return invalid()
+  if (input.action === 'assign_role') {
+    if (!['admin', 'device_manager', 'employee'].includes(input.role as string)) return invalid()
+    return { action: 'assign_role', id: id as string, role: input.role as 'admin' | 'device_manager' | 'employee' }
+  }
   if (input.action === 'deactivate')
     return { action: 'deactivate', id: id as string }
   const name = (field: string) => {

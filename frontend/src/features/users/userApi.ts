@@ -1,3 +1,4 @@
+import { editablePermissions, isPermission, type Permission } from '../../config/permissions'
 import { supabase } from '../../lib/supabase'
 import type {
   AdminUserCommand,
@@ -24,6 +25,7 @@ const safeMessages: Record<string, string> = {
   creation_failed:
     'Konto konnte nicht angelegt werden. Prüfe E-Mail und Passwortvorgaben.',
   not_found: 'Der Benutzer wurde nicht gefunden.',
+  protected_role: 'Dieses Konto ist geschützt.',
   ban_pending:
     'Anwendungszugriff gesperrt. Bitte die Anmeldesperre mit „Sperre abschließen“ erneut ausführen.',
 }
@@ -79,7 +81,7 @@ export const userApi = {
         (user) =>
           !user ||
           typeof user.id !== 'string' ||
-          !['admin', 'device_manager', 'employee'].includes(user.role) ||
+          !['super_admin', 'admin', 'device_manager', 'employee'].includes(user.role) ||
           ![
             user.first_name,
             user.last_name,
@@ -102,6 +104,26 @@ export const userApi = {
   },
   update(id: string, input: { first_name: string; last_name: string }) {
     return call({ action: 'update', id, ...input })
+  },
+  assignRole(id: string, role: 'admin' | 'device_manager' | 'employee') {
+    return call({ action: 'assign_role', id, role })
+  },
+  async getPermissions(): Promise<Record<'admin' | 'device_manager' | 'employee', Permission[]>> {
+    const data = await call({ action: 'permission_list' })
+    if (!data || typeof data !== 'object' || Array.isArray(data))
+      throw new UserApiError('Ungültige Serverantwort.', 'invalid_response')
+    const result = data as Record<string, unknown>
+    for (const role of ['admin', 'device_manager', 'employee']) {
+      const values = result[role]
+      if (!Array.isArray(values) || values.some(value => !isPermission(value)))
+        throw new UserApiError('Ungültige Serverantwort.', 'invalid_response')
+    }
+    return result as Record<'admin' | 'device_manager' | 'employee', Permission[]>
+  },
+  setPermissions(role: 'admin' | 'device_manager' | 'employee', permissions: readonly Permission[]) {
+    if (permissions.some(permission => !editablePermissions.includes(permission)))
+      throw new UserApiError('Geschützte Rechte sind nicht veränderbar.', 'invalid_input')
+    return call({ action: 'permission_update', role, permissions: [...permissions] })
   },
   deactivate(id: string) {
     return call({ action: 'deactivate', id })

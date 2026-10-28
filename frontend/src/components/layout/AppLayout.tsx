@@ -7,7 +7,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from 'react'
-import type { Role } from '../../config/permissions'
+import type { Permission, Role } from '../../config/permissions'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 
@@ -20,6 +20,7 @@ interface AppLayoutProps {
     event: MouseEvent<HTMLAnchorElement>
   ) => void
   role: Role | null
+  permissions?: readonly Permission[] | null
 }
 
 const desktopNavigationQuery = '(min-width: 64.0625rem)'
@@ -30,6 +31,7 @@ export function AppLayout({
   currentPath,
   onNavigate,
   role,
+  permissions,
 }: AppLayoutProps) {
   const [isNavigationOpen, setIsNavigationOpen] = useState(false)
 
@@ -133,6 +135,7 @@ export function AppLayout({
         onClose={closeNavigation}
         onNavigate={handleNavigate}
         role={role}
+        permissions={permissions}
         ref={navigationRef}
       />
 

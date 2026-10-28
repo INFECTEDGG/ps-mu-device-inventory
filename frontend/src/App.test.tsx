@@ -41,6 +41,10 @@ vi.mock('./pages/PlaceholderPage', () => ({
 }))
 
 // Die Fachseite wird separat getestet; hier wird nur der Route-Zugriff geprüft.
+vi.mock('./features/roles/RolePermissionsPage', () => ({
+  RolePermissionsPage: () => <div>SuperAdmin-Berechtigungen</div>,
+}))
+
 vi.mock('./features/users/UserManagementPage', () => ({
   UserManagementPage: () => <div>Geschützter Seiteninhalt</div>,
 }))
@@ -79,6 +83,7 @@ function setAuthState(role: Role | null, signedIn = true) {
     user: session?.user ?? null,
     userId: session?.user.id ?? null,
     role: signedIn ? role : null,
+    permissions: null,
     isLoading: false,
     isRoleLoading: false,
     isSigningOut: false,
@@ -110,6 +115,17 @@ describe('RBAC - Seitenzugriff nach Benutzerrolle', () => {
     expect(
       screen.getByText('Geschützter Seiteninhalt')
     ).toBeTruthy()
+  })
+
+  it('nur SuperAdmin darf Rollenrechte bearbeiten', () => {
+    setCurrentPath('/rollenverwaltung')
+    setAuthState('admin')
+    render(<App />)
+    expect(screen.getByText('Zugriff verweigert')).toBeTruthy()
+    cleanup()
+    setAuthState('super_admin')
+    render(<App />)
+    expect(screen.getByText('SuperAdmin-Berechtigungen')).toBeTruthy()
   })
 
   it('Mitarbeiter darf Benutzerverwaltung nicht öffnen', () => {

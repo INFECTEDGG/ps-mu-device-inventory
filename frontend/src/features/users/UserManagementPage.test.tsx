@@ -22,6 +22,9 @@ vi.mock('./userApi', async (importOriginal) => {
       create: vi.fn(),
       update: vi.fn(),
       deactivate: vi.fn(),
+      assignRole: vi.fn(),
+      getPermissions: vi.fn(),
+      setPermissions: vi.fn(),
     },
   }
 })
@@ -34,12 +37,13 @@ const user: ManagedUser = {
   disabled_at: null,
   login_blocked: false,
 }
-function auth(role: 'admin' | 'employee' | 'device_manager' = 'admin') {
+function auth(role: 'super_admin' | 'admin' | 'employee' | 'device_manager' = 'admin') {
   vi.mocked(useAuthSession).mockReturnValue({
     session: {} as Session,
     user: null,
     userId: '00000000-0000-4000-8000-000000000001',
     role,
+    permissions: null,
     isLoading: false,
     isRoleLoading: false,
     isSigningOut: false,
@@ -57,6 +61,7 @@ describe('Benutzerverwaltung', () => {
     vi.mocked(userApi.create).mockResolvedValue({ ok: true })
     vi.mocked(userApi.update).mockResolvedValue({ ok: true })
     vi.mocked(userApi.deactivate).mockResolvedValue({ ok: true })
+    vi.mocked(userApi.assignRole).mockResolvedValue({ ok: true })
   })
   afterEach(cleanup)
 
@@ -177,4 +182,25 @@ describe('Benutzerverwaltung', () => {
       (screen.getByLabelText('Initiales Passwort') as HTMLInputElement).value,
     ).toBe('')
   })
+  it('Admin darf Mitarbeiter zum Gerätemanager machen', async () => {
+    render(<UserManagementPage />)
+    await screen.findByText(user.email!)
+    fireEvent.click(screen.getByRole('button', { name: 'Rolle zuweisen' }))
+    fireEvent.change(screen.getByLabelText('Neue Rolle'), { target: { value: 'device_manager' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    await screen.findByText(/Rolle gespeichert/)
+    expect(userApi.assignRole).toHaveBeenCalledWith(user.id, 'device_manager')
+    expect(screen.queryByRole('option', { name: 'Administrator' })).toBeNull()
+  })
+  it('Nur SuperAdmin darf Administrator ernennen', async () => {
+    auth('super_admin')
+    render(<UserManagementPage />)
+    await screen.findByText(user.email!)
+    fireEvent.click(screen.getByRole('button', { name: 'Rolle zuweisen' }))
+    fireEvent.change(screen.getByLabelText('Neue Rolle'), { target: { value: 'admin' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    await screen.findByText(/Rolle gespeichert/)
+    expect(userApi.assignRole).toHaveBeenCalledWith(user.id, 'admin')
+  })
+
 })
