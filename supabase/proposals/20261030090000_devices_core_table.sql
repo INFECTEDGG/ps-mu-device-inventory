@@ -1,8 +1,8 @@
--- PBI-06: Stammdaten-Tabelle fuer den zentralen Geraetebestand.
--- Ein neu angelegtes Geraet ist mit dem Insert sofort Teil des Bestands;
--- sichtbar wird es ueber die Select-Policy weiter unten.
--- Voraussetzung: public.profiles und public.roles existieren bereits.
--- REVIEW PROPOSAL ONLY. Vor Produktionseinsatz im Team abstimmen.
+-- PBI 06: Gerät erfassen SQL Tabelle dafür.
+-- Stammdaten-Tabelle für den zentralen Gerätebestand.
+-- Voraussetzung: public.profiles und public.roles existieren bereits. -> Sicherheitsprüfung
+-- Zugriff nur für device_manager/admin/super_admin
+
 begin;
 set local lock_timeout = '5s';
 

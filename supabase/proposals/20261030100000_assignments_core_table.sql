@@ -1,8 +1,8 @@
--- PBI-10: Zuweisung eines Geraets an einen Mitarbeiter.
--- returned_at/returned_by sind fuer die spaetere Ruecknahme (PBI-11) vorgesehen,
--- werden hier aber noch nicht befuellt.
--- Voraussetzung: public.devices und public.profiles existieren bereits.
--- REVIEW PROPOSAL ONLY. Vor Produktionseinsatz im Team abstimmen.
+-- Für PBI-10: Zuweisung eines Geräts an einen Mitarbeiter. SQL-Tabelle dafür.
+-- returned_at/returned_by sind für die Rückgabe eines Geräts vorgesehen. --> PBI-11.
+-- Voraussetzung: public.devices und public.profiles existieren bereits wieder
+-- für proposals
+
 begin;
 set local lock_timeout = '5s';
 
@@ -28,7 +28,7 @@ create table public.assignments (
   created_at timestamptz not null default now()
 );
 
--- Ein Geraet darf gleichzeitig nur eine aktive (nicht zurueckgegebene) Zuweisung haben.
+-- Ein Gerät darf gleichzeitig nur eine aktive Zuweisung haben. (returned_at IS NULL)
 create unique index assignments_one_active_per_device
   on public.assignments (device_id)
   where returned_at is null;
