@@ -142,24 +142,25 @@ Sprint 1 wurde vollständig abgeschlossen.
 
 ---
 
-## DD.MM.YYYY
+## 30.10.2026
 
 ### Teilnehmer
 
-- ...
+- Ali Ahmad (227308)
+- Tom Jarolim (222880)
 
 ### Entscheidungen
 
-- ...
+- Es wurden keine neuen Entscheidungen getroffen.
 
 ### Änderungen / Fortschritt
 
-- ...
+- Keine Änderungen oder Fortschritte dokumentiert.
 
 ### Probleme / offene Fragen
 
-- ...
+- Keine neuen Probleme oder offenen Fragen dokumentiert.
 
 ### Nächste Schritte
 
-- ...
+- Sprint 3 anfangen und abschließen.
