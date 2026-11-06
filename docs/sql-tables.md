@@ -106,11 +106,24 @@ Sie bildet den zentralen Gerätebestand der Anwendung ab. Jedes Gerät besitzt e
 |---|---|
 | `id` | Eindeutige UUID des Gerätes |
 | `asset_tag` | Unternehmensinterne Geräte- bzw. Inventarnummer |
-| `serial_number` | Seriennummer des Gerätes |
+| `name` | Anzeigename des Gerätes |
 | `device_type` | Art des Gerätes, z. B. Laptop, Smartphone oder Tablet |
 | `manufacturer` | Hersteller |
 | `model` | Modellbezeichnung |
+| `serial_number` | Seriennummer des Gerätes |
+| `operating_system` | Betriebssystem |
+| `processor` | Prozessor des Gerätes |
+| `ram_gb` | Arbeitsspeicher in GB |
+| `disk_space_gb` | Speicherplatz in GB |
+| `location` | Standort des Gerätes |
+| `device_usage` | . |
 | `status` | Aktueller Gerätestatus |
+| `purchased_at` | Kaufdatum des Gerätes |
+| `start_of_use` | Datum der Inbetriebnahme |
+| `maintenance_end` | Enddatum des Wartungsvertrages |
+| `describtion` | Beschreibung des Gerätes |
+| `comments` | Zusätzliche Kommentare |
+| `created_by` | Benutzer, der das Gerät angelegt hat |
 | `created_at` | Zeitpunkt der Erstellung |
 | `updated_at` | Zeitpunkt der letzten Änderung |
 
