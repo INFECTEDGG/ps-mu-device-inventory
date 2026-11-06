@@ -19,6 +19,7 @@ waren, können hier relevante Änderungen nachlesen.
 - Manuel Pflaum (219241)
 - Ali Ahmad (227308)
 - Guilliermo Morishige-Takane (224921)
+- Ümit Emekse (220857)
 
 ### Entscheidungen
 
@@ -164,3 +165,31 @@ Sprint 1 wurde vollständig abgeschlossen.
 ### Nächste Schritte
 
 - Sprint 3 anfangen und abschließen.
+
+---
+
+## 06.11.2026
+
+### Teilnehmer
+
+- Maximilian Stephan (223702)
+- Louis Sämann (223519)
+- Ali Ahmad (227308)
+- Guilliermo Morishige-Takane (224921)
+- Ümit Emekse (220857)
+
+### Entscheidungen
+
+- Tasks 4, 5, 6, 7 bis 13.11.2026 abarbeiten.
+
+### Änderungen / Fortschritt
+
+- Task 1-3 fertig abgeschlossen.
+
+### Probleme / offene Fragen
+
+- Implementierung mit Public Keys für die Datenbank waren etwas komplizierter.
+
+### Nächste Schritte
+
+- Sprint 3 abschließen.
