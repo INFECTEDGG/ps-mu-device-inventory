@@ -13,6 +13,7 @@ import { NotFoundPage } from './pages/NotFoundPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { RolePermissionsPage } from './features/roles/RolePermissionsPage'
 import { UserManagementPage } from './features/users/UserManagementPage'
+import { DeviceManagementPage } from './features/devices/DeviceManagementPage'
 
 export default function App() {
   // Authentifizierung und Benutzerrolle über Micha
@@ -119,6 +120,8 @@ export default function App() {
         <RolePermissionsPage />
       ) : currentPath === '/benutzerverwaltung' ? (
         <UserManagementPage />
+      ) : currentPath === '/geraete' ? (
+        <DeviceManagementPage />
       ) : (
         <PlaceholderPage page={currentPage} />
       )}
