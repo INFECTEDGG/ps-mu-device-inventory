@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { PageContainer } from '../../components/ui/PageContainer'
 import { PageHeader } from '../../components/ui/PageHeader'
+import { ActionNotice } from '../../components/ui/ActionNotice'
 import { editablePermissions, hasPermission, permissionLabels, type Permission } from '../../config/permissions'
 import { useAuthSession } from '../../hooks/useAuthSession'
 import { userApi } from '../users/userApi'
@@ -78,7 +79,7 @@ export function RolePermissionsPage() {
         <h2>Rechte je Rolle</h2>
         <p className="users-help">Sicherheitskritische Rechte (Benutzerverwaltung, Admin-Ernennung, SuperAdmin) sind fest geschützt. Die hier veränderbaren Rechte wirken nach erneuter Anmeldung und aktivierter serverseitiger Berechtigungsabfrage.</p>
         {error && <div role="alert" className="users-error">{error} <button className="users-button" onClick={() => setVersion(v => v + 1)}>Erneut versuchen</button></div>}
-        {feedback && <p role="status" className="users-feedback">{feedback}</p>}
+        {feedback && <ActionNotice className="users-feedback">{feedback}</ActionNotice>}
         {loading ? <p role="status">Berechtigungen werden geladen …</p> : !error && (
           <div className="users-table-scroll" role="region" aria-label="Rollenberechtigungen" tabIndex={0}>
             <table className="users-table users-permission-table">

@@ -15,7 +15,7 @@ export const navigationEntries: readonly NavigationEntry[] = [
     label: 'Dashboard',
     path: '/',
     icon: 'dashboard',
-    description: 'Das Dashboard wird in einem separaten Arbeitspaket umgesetzt.',
+    description: 'Kennzahlen und aktive Gerätezuweisungen auf einen Blick.',
     requiredPermission: 'dashboard:view',
   },
   {
@@ -50,7 +50,7 @@ export const navigationEntries: readonly NavigationEntry[] = [
     label: 'Einstellungen',
     path: '/einstellungen',
     icon: 'settings',
-    description: 'Einstellungen werden in einem separaten Arbeitspaket umgesetzt.',
+    description: 'Eigenes Konto, Passwort und Anzeigeoptionen verwalten.',
     requiredPermission: 'settings:view',
   },
 ]

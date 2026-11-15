@@ -180,3 +180,17 @@
 .users-status-filter .users-button[aria-pressed='true'] {
   cursor: default;
 }
+/* Statusanzeige immer in einer Zeile */
+.users-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+/* Ausreichend Platz für die Status-Spalte */
+.users-table th:nth-child(4),
+.users-table td:nth-child(4) {
+  min-width: 110px;
+}

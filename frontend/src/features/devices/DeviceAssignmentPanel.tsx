@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { assignmentApi, AssignmentApiError, type AssignmentCandidate } from './assignmentApi'
 import type { DeviceRecord } from './deviceApi'
+import { RevealPanel } from '../../components/ui/RevealPanel'
 import { isDeviceAssignable } from './deviceAssignmentRules'
 
 interface Props {
@@ -48,7 +49,7 @@ export function DeviceAssignmentPanel({ device, onCancel, onSuccess }: Props) {
     }
   }
 
-  return <section className="devices-panel" aria-labelledby="device-assignment-title">
+  return <RevealPanel focusKey={`assignment-${device.id}`} className="devices-panel" aria-labelledby="device-assignment-title">
     <h2 id="device-assignment-title">Gerät zuweisen – {device.asset_tag}</h2>
     <p className="devices-help">Nur verfügbare Geräte können zugewiesen werden. Die Zuweisung und der Statuswechsel werden gemeinsam in Supabase gespeichert.</p>
     <form onSubmit={(event) => void submit(event)} aria-busy={saving || loading}>
@@ -79,5 +80,5 @@ export function DeviceAssignmentPanel({ device, onCancel, onSuccess }: Props) {
         </button>
       </div>
     </form>
-  </section>
+  </RevealPanel>
 }

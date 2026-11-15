@@ -4,6 +4,10 @@ import {Analytics} from '@vercel/analytics/react'
 import App from './App'
 import { AuthProvider } from './auth/AuthProvider'
 import './styles/index.css'
+import './styles/themes.css'
+import { initializeDisplayPreferences } from './lib/displayPreferences'
+
+initializeDisplayPreferences()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

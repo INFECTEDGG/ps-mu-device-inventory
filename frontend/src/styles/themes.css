@@ -1,0 +1,142 @@
+/* Device Inventory appearance tokens. Imported after styles/index.css. */
+:root {
+  --color-subtle: #f6f8fc;
+  --color-hover: #edf1f7;
+  --color-badge-text: #2548a2;
+  --color-badge-bg: #eef3ff;
+  --color-error: #982828;
+  --color-error-bg: #fff0f0;
+  --color-success: #14553e;
+  --color-success-bg: #effbf4;
+  color-scheme: light;
+}
+:root[data-accent='blue'] { --color-primary: #2855c5; --color-primary-dark: #1e429f; }
+:root[data-accent='green'] { --color-primary: #137954; --color-primary-dark: #0b6042; }
+:root[data-accent='teal'] { --color-primary: #086a83; --color-primary-dark: #075469; }
+:root[data-accent='purple'] { --color-primary: #7049cb; --color-primary-dark: #5a37b4; }
+:root[data-accent='orange'] { --color-primary: #aa501b; --color-primary-dark: #874017; }
+
+/* Coordinate status badges and selected navigation with the chosen accent. */
+:root[data-accent='green'] { --color-badge-text: #166043; --color-badge-bg: #e4f5ec; }
+:root[data-accent='teal'] { --color-badge-text: #0a647b; --color-badge-bg: #e0f4f8; }
+:root[data-accent='purple'] { --color-badge-text: #6041ad; --color-badge-bg: #f0eafd; }
+:root[data-accent='orange'] { --color-badge-text: #8f4217; --color-badge-bg: #fff0e6; }
+:root[data-accent] :is(.users-badge, .devices-status, .assignments-pill, .topbar__badge, .dashboard-count) {
+  color: var(--color-badge-text); background: var(--color-badge-bg);
+}
+:root[data-accent] .navigation-item[aria-current='page'] {
+  background: color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+:root[data-accent] .navigation-item::before { background: var(--color-primary); }
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  color: #edf3fd;
+  background: #0b1322;
+  --color-canvas: #0b1322;
+  --color-surface: #152134;
+  --color-subtle: #1b2b43;
+  --color-hover: #293b54;
+  --color-ink: #edf3fd;
+  --color-muted: #aabdd5;
+  --color-border: #384b64;
+  --color-sidebar: #090f1d;
+  --color-sidebar-muted: #b1bfd5;
+  --color-focus: #ffc65c;
+  --color-badge-text: #d7e7ff;
+  --color-badge-bg: #263c64;
+  --color-error: #ffb8b8;
+  --color-error-bg: #50242c;
+  --color-success: #a1e8c2;
+  --color-success-bg: #173b31;
+  --shadow-panel: 0 1rem 3rem rgba(0,0,0,.2);
+}
+:root[data-theme='dark'][data-accent='blue'] { --color-primary: #375ec5; --color-primary-dark: #264bad; }
+:root[data-theme='dark'][data-accent='green'] { --color-primary: #157755; --color-primary-dark: #0d6246; }
+:root[data-theme='dark'][data-accent='teal'] { --color-primary: #0d6b83; --color-primary-dark: #0a5266; }
+:root[data-theme='dark'][data-accent='purple'] { --color-primary: #6847b8; --color-primary-dark: #53389b; }
+:root[data-theme='dark'][data-accent='orange'] { --color-primary: #9f481d; --color-primary-dark: #803616; }
+:root[data-theme='dark'][data-accent='green'] { --color-badge-text: #a5f3cd; --color-badge-bg: #184b39; }
+:root[data-theme='dark'][data-accent='teal'] { --color-badge-text: #a3f0ff; --color-badge-bg: #164a57; }
+:root[data-theme='dark'][data-accent='purple'] { --color-badge-text: #e0d2ff; --color-badge-bg: #3a306a; }
+:root[data-theme='dark'][data-accent='orange'] { --color-badge-text: #ffcfb0; --color-badge-bg: #59311e; }
+:root[data-theme='dark'] :is(.topbar, .settings-panel, .dashboard-section, .devices-panel, .users-panel, .assignments-panel) {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-color: var(--color-border);
+}
+:root[data-theme='dark'] .topbar { backdrop-filter: none; }
+:root[data-theme='dark'] :is(.topbar__menu, .topbar__context, .topbar__page) { color: var(--color-ink); }
+:root[data-theme='dark'] :is(.main-content, .page-container) { color: var(--color-ink); }
+:root[data-theme='dark'] .main-content { background: var(--color-canvas); }
+:root[data-theme='dark'] :is(input:not([type='checkbox']):not([type='radio']), textarea, select) {
+  background: var(--color-subtle);
+  color: var(--color-ink);
+  border-color: var(--color-border);
+}
+:root[data-theme='dark'] :is(input, textarea)::placeholder { color: var(--color-muted); }
+:root[data-theme='dark'] :is(.users-button, .devices-button, .assignments-button, .dashboard-button, .dashboard-link, .settings-button) {
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+:root[data-theme='dark'] :is(.users-button, .devices-button, .assignments-button, .dashboard-button, .dashboard-link, .settings-button):hover:enabled {
+  background: var(--color-hover);
+}
+:root[data-theme='dark'] :is(.users-button--primary, .devices-button--primary, .assignments-button--primary, .dashboard-link--primary, .settings-button--primary) {
+  color: #fff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+:root[data-theme='dark'] :is(.users-button--primary, .devices-button--primary, .assignments-button--primary, .dashboard-link--primary, .settings-button--primary):hover:enabled {
+  background: var(--color-primary-dark);
+}
+:root[data-theme='dark'] :is(.users-button--danger, .assignments-error, .devices-error, .users-error, .settings-error, .dashboard-error) {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+}
+:root[data-theme='dark'] :is(.devices-table th, .users-table thead, .assignments-table th, .dashboard-table th) {
+  color: var(--color-muted);
+  background: var(--color-subtle);
+}
+:root[data-theme='dark'] :is(.users-badge, .devices-status, .assignments-pill, .topbar__badge, .dashboard-count) {
+  color: var(--color-badge-text);
+  background: var(--color-badge-bg);
+  border-color: var(--color-border);
+}
+:root[data-theme='dark'] :is(.users-status-filter--selected, .assignments-button--selected) {
+  color: var(--color-badge-text);
+  background: var(--color-badge-bg);
+  border-color: var(--color-primary);
+}
+:root[data-theme='dark'] :is(.settings-choice, .settings-accent-choice, .settings-profile-grid > div, .dashboard-metric) {
+  color: var(--color-ink);
+  background: var(--color-subtle);
+  border-color: var(--color-border);
+}
+:root[data-theme='dark'] :is(.settings-saved, .assignments-success, .interaction-notice--success) {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+}
+:root[data-theme='dark'] .placeholder-panel { background: var(--color-surface); }
+:root[data-theme='dark'] .placeholder-panel::after { border-color: var(--color-subtle); }
+:root[data-theme='dark'] .placeholder-panel__icon { color: var(--color-ink); background: var(--color-subtle); border-color: var(--color-border); }
+:root[data-theme='dark'] .login-page { color: var(--color-ink); background: var(--color-canvas); }
+:root[data-theme='dark'] .navigation-item[aria-current='page'] { background: color-mix(in srgb, var(--color-primary) 33%, transparent); }
+:root[data-theme='dark'] .navigation-item::before { background: var(--color-primary); }
+
+/* Compact tables apply consistently across existing and new modules. */
+:root[data-density='compact'] :is(.users-table, .devices-table, .assignments-table, .dashboard-table) :is(th, td) {
+  padding-block: .42rem;
+  font-size: .86rem;
+}
+:root[data-reduce-motion='true'] *,
+:root[data-reduce-motion='true'] *::before,
+:root[data-reduce-motion='true'] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: .01ms !important;
+  transition-duration: .01ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

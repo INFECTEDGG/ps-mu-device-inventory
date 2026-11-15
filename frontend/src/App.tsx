@@ -14,6 +14,8 @@ import { RolePermissionsPage } from './features/roles/RolePermissionsPage'
 import { UserManagementPage } from './features/users/UserManagementPage'
 import { DeviceManagementPage } from './features/devices/DeviceManagementPage'
 import { AssignmentManagementPage } from './features/assignments/AssignmentManagementPage'
+import { DashboardPage } from './features/dashboard/DashboardPage'
+import { SettingsPage } from './features/settings/SettingsPage'
 
 export default function App() {
   const {
@@ -70,6 +72,10 @@ export default function App() {
     ) : !hasAccess ? (
       <PageContainer><PageHeader title="Zugriff verweigert"
         description="Du hast keine Berechtigung, diese Seite aufzurufen." /></PageContainer>
+    ) : currentPath === '/' ? (
+      <DashboardPage onNavigate={navigate} />
+    ) : currentPath === '/einstellungen' ? (
+      <SettingsPage />
     ) : currentPath === '/rollenverwaltung' ? (
       <RolePermissionsPage />
     ) : currentPath === '/benutzerverwaltung' ? (

@@ -1,6 +1,7 @@
 import { useEffect, useState, type MouseEvent } from 'react'
 import { PageContainer } from '../../components/ui/PageContainer'
 import { PageHeader } from '../../components/ui/PageHeader'
+import { ActionNotice } from '../../components/ui/ActionNotice'
 import { hasPermission } from '../../config/permissions'
 import { useAuthSession } from '../../hooks/useAuthSession'
 import {
@@ -110,8 +111,8 @@ export function AssignmentManagementPage({ onNavigateToDevices }: Props) {
           className={`assignments-button ${view === 'returned' ? 'assignments-button--selected' : ''}`}
           onClick={() => switchView('returned')}>Zurückgegeben ({overview.returned_count})</button>
       </div>
-      {success && <p role="status" className="assignments-success">{success}</p>}
-      {actionError && <p role="alert" className="assignments-error">{actionError}</p>}
+      {success && <ActionNotice className="assignments-success">{success}</ActionNotice>}
+      {actionError && <ActionNotice variant="error" className="assignments-error">{actionError}</ActionNotice>}
       {error ? <div role="alert" className="assignments-error">
         <p>{error}</p>
         <button type="button" className="assignments-button" onClick={() => setReload(n => n + 1)}>Erneut versuchen</button>

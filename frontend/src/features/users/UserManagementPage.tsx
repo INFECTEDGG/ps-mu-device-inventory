@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { PageContainer } from '../../components/ui/PageContainer'
 import { PageHeader } from '../../components/ui/PageHeader'
+import { RevealPanel } from '../../components/ui/RevealPanel'
+import { ActionNotice } from '../../components/ui/ActionNotice'
 import { canAssignRole, hasPermission, type Role } from '../../config/permissions'
 import { useAuthSession } from '../../hooks/useAuthSession'
 import {
@@ -185,9 +187,7 @@ export function UserManagementPage() {
         title="Benutzerverwaltung"
         description="Benutzerkonten anlegen, Stammdaten bearbeiten und Zugriffe sperren."
       />
-      <p className="users-feedback" role="status">
-        {message}
-      </p>
+      <ActionNotice className="users-feedback">{message}</ActionNotice>
       <section
         className="users-panel"
         aria-labelledby="users-title"
@@ -404,7 +404,7 @@ export function UserManagementPage() {
         )}
       </section>
       {editor && (
-        <section className="users-panel" aria-labelledby="users-editor-title">
+        <RevealPanel focusKey={`${editor.kind}-${editor.user?.id ?? 'new'}`} className="users-panel" aria-labelledby="users-editor-title">
           <h2 id="users-editor-title">
             {editor.kind === 'create'
               ? 'Benutzer anlegen'
@@ -542,7 +542,7 @@ export function UserManagementPage() {
               </button>
             </div>
           </form>
-        </section>
+        </RevealPanel>
       )}
     </PageContainer>
   )

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { PageContainer } from '../../components/ui/PageContainer'
 import { PageHeader } from '../../components/ui/PageHeader'
+import { RevealPanel } from '../../components/ui/RevealPanel'
+import { ActionNotice } from '../../components/ui/ActionNotice'
 import { hasPermission } from '../../config/permissions'
 import { useAuthSession } from '../../hooks/useAuthSession'
 import {
@@ -324,7 +326,7 @@ export function DeviceManagementPage() {
   return (
     <PageContainer>
       <PageHeader title="Geräte" description="Zentraler Gerätebestand des Device Inventory." />
-      <p className="devices-feedback" role="status">{message}</p>
+      <ActionNotice className="devices-feedback">{message}</ActionNotice>
 
       <section className="devices-panel" aria-labelledby="devices-title">
         <div className="devices-toolbar">
@@ -403,7 +405,7 @@ export function DeviceManagementPage() {
         </div>}
       </section>
 
-      {selected && !editor && <section className="devices-panel" aria-labelledby="device-details-title">
+      {selected && !editor && <RevealPanel focusKey={`details-${selected.id}`} className="devices-panel" aria-labelledby="device-details-title">
         <div className="devices-toolbar">
           <h2 id="device-details-title">Details – {selected.asset_tag}</h2>
           <button type="button" className="devices-button" onClick={() => setSelected(null)}>Schließen</button>
@@ -422,7 +424,7 @@ export function DeviceManagementPage() {
         {canChangeStatus && <button type="button" className="devices-button"
           disabled={selected.status === 'assigned' || selected.status === 'retired'}
           onClick={() => openStatusEditor(selected)}>Status ändern</button>}
-      </section>}
+      </RevealPanel>}
 
       {assigningDevice && canAssign && <DeviceAssignmentPanel
         device={assigningDevice}
@@ -430,7 +432,7 @@ export function DeviceManagementPage() {
         onSuccess={assignmentCompleted}
       />}
 
-      {statusEditor && canChangeStatus && <section className="devices-panel" aria-labelledby="device-status-title">
+      {statusEditor && canChangeStatus && <RevealPanel focusKey={`status-${statusEditor.id}`} className="devices-panel" aria-labelledby="device-status-title">
         <h2 id="device-status-title">Gerätestatus ändern – {statusEditor.asset_tag}</h2>
         <p className="devices-help">Aktuell: <strong>{statusLabel(statusEditor.status)}</strong>.
           „Zugewiesen“ wird ausschließlich über die Gerätezuweisung gesetzt.
@@ -455,9 +457,9 @@ export function DeviceManagementPage() {
           </div>
         </div>
         {statusError && <p role="alert" className="devices-error">{statusError}</p>}
-      </section>}
+      </RevealPanel>}
 
-      {editor && canManage && (editor === 'create' || canEdit) && <section className="devices-panel" aria-labelledby="devices-editor-title">
+      {editor && canManage && (editor === 'create' || canEdit) && <RevealPanel focusKey={`editor-${editor}-${selected?.id ?? 'new'}`} className="devices-panel" aria-labelledby="devices-editor-title">
         <h2 id="devices-editor-title">{editor === 'edit' ? 'Gerät bearbeiten' : 'Gerät anlegen'}</h2>
         <form onSubmit={submit} aria-busy={saving}>
           <fieldset className="devices-fields" disabled={saving}>
@@ -517,7 +519,7 @@ export function DeviceManagementPage() {
             </button>
           </div>
         </form>
-      </section>}
+      </RevealPanel>}
     </PageContainer>
   )
 }
