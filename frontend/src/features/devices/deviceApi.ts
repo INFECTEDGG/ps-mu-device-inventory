@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase'
+import { type DeviceFilters, type DeviceAssignee, EMPTY_DEVICE_FILTERS, searchOrExpression } from './deviceFilters'
 
 export class DeviceApiError extends Error {
   constructor(message: string, readonly code: string) {
@@ -30,7 +31,7 @@ export type DeviceStatus = 'available' | 'assigned' | 'defective' | 'maintenance
 
 export interface DeviceRecord extends NewDeviceInput {
   id: string
-  status: DeviceStatus
+  status: DeviceStatus | null
   created_at: string | null
   updated_at?: string | null
 }
@@ -49,6 +50,8 @@ const safeMessages: Record<string, string> = {
   duplicate: 'Geräte-ID oder Seriennummer wird bereits verwendet.',
   invalid: 'Bitte die Pflichtfelder vollständig ausfüllen.',
   missing: 'Das Gerät wurde nicht gefunden oder ist nicht mehr zugänglich.',
+  status_invalid: 'Ungültiger Gerätestatus.',
+  status_conflict: 'Statuswechsel nicht möglich. Prüfe eine aktive Zuweisung oder den Gerätestatus.',
 }
 
 function errorFor(code: string): DeviceApiError {
@@ -58,6 +61,9 @@ function errorFor(code: string): DeviceApiError {
 function classifyError(code: string | undefined): DeviceApiError {
   if (code === '23505') return errorFor('duplicate')
   if (code === '42501' || code === 'PGRST301') return errorFor('forbidden')
+  if (code === '23514' || code === 'P0001') return errorFor('status_conflict')
+  if (code === '22023') return errorFor('status_invalid')
+  if (code === 'P0002') return errorFor('missing')
   return errorFor('unavailable')
 }
 
@@ -109,17 +115,23 @@ export const deviceApi = {
     return `IT-${String(next).padStart(4, '0')}`
   },
 
-  // Die Zuordnung wird für Mitarbeiter vorab geprüft. Die RLS-Policies der
-  // Datenbank bleiben die maßgebliche Sicherheitsgrenze.
-  async list(userId: string, canViewAll: boolean, page = 0): Promise<DevicePage> {
+  // Alle Filter werden VOR der Pagination auf Supabase angewandt.
+  // Bei Mitarbeitern wird die Geräteauswahl weiterhin auf aktive eigene
+  // Zuweisungen eingeschränkt; die DB-RLS ist die maßgebliche Sicherheitsgrenze.
+  async list(
+    userId: string, canViewAll: boolean, page = 0,
+    filters: DeviceFilters = EMPTY_DEVICE_FILTERS,
+  ): Promise<DevicePage> {
     const db = await requireSession()
     if (!userId) throw errorFor('unauthorized')
     let ids: string[] | null = null
-    if (!canViewAll) {
-      const assignments = await db
-        .from('assignments')
+    if (!canViewAll || filters.employeeId) {
+      // Employee-IDs aus fremden Eingaben dürfen einen eigenen Mitarbeiter-
+      // Account nicht auf andere Geräte umschalten.
+      const employeeId = canViewAll ? filters.employeeId : userId
+      const assignments = await db.from('assignments')
         .select('device_id')
-        .eq('employee_id', userId)
+        .eq('employee_id', employeeId)
         .is('returned_at', null)
       if (assignments.error) throw classifyError(assignments.error.code)
       ids = [...new Set((assignments.data ?? []).map((item: { device_id: string }) => item.device_id))]
@@ -133,9 +145,36 @@ export const deviceApi = {
       .order('id', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1)
     if (ids) query = query.in('id', ids)
+    if (filters.status === 'unset') query = query.is('status', null)
+    else if (filters.status !== 'all') query = query.eq('status', filters.status)
+    if (filters.deviceType.trim()) query = query.ilike('device_type', `%${filters.deviceType.trim().replace(/[\%_]/g, '\$&')}%`)
+    if (filters.search.trim()) query = query.or(searchOrExpression(filters.search))
+
     const { data, error, count } = await query
     if (error) throw classifyError(error.code)
     return { devices: (data ?? []) as DeviceRecord[], total: count ?? 0 }
+  },
+
+  // Gibt nur Benutzer mit aktiven Zuweisungen zurück. Namen werden nur dann
+  // angezeigt, wenn die vorhandenen Profile-RLS-Policies sie freigeben.
+  // Diese Lesefunktion ist bewusst auf Benutzer mit Gesamtansicht begrenzt.
+  async assignees(canViewAll: boolean): Promise<DeviceAssignee[]> {
+    if (!canViewAll) return []
+    const db = await requireSession()
+    const { data: assignments, error } = await db.from('assignments')
+      .select('employee_id')
+      .is('returned_at', null)
+    if (error) throw classifyError(error.code)
+    const ids = [...new Set((assignments ?? []).map((row: { employee_id: string }) => row.employee_id))]
+    if (ids.length === 0) return []
+    const { data: profiles } = await db.from('profiles')
+      .select('id,first_name,last_name')
+      .in('id', ids)
+    const byId = new Map((profiles ?? []).map((row: { id: string; first_name: string | null; last_name: string | null }) => [
+      row.id, `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim(),
+    ] as const))
+    return ids.map((id) => ({ id, label: byId.get(id) || `Mitarbeiter (${id.slice(0, 8)})` }))
+      .sort((left, right) => left.label.localeCompare(right.label, 'de'))
   },
 
   async create(input: NewDeviceInput, createdBy: string): Promise<void> {
@@ -144,6 +183,19 @@ export const deviceApi = {
     const { error } = await db.from('devices').insert({
       ...normalizedInput(input),
       created_by: createdBy,
+    })
+    if (error) throw classifyError(error.code)
+  },
+
+  // Aufgabe 6: Der Statuswechsel wird ausschließlich über eine serverseitig
+  // autorisierte RPC durchgeführt. Der Client darf die Spalte status NICHT
+  // über ein freies UPDATE schreiben.
+  async changeStatus(id: string, nextStatus: Exclude<DeviceStatus, 'assigned'>): Promise<void> {
+    const db = await requireSession()
+    if (!id) throw errorFor('missing')
+    const { error } = await db.rpc('inventory_device_set_status', {
+      target_device: id,
+      target_status: nextStatus,
     })
     if (error) throw classifyError(error.code)
   },

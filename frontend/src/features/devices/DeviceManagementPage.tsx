@@ -11,8 +11,11 @@ import {
   type DeviceStatus,
   type NewDeviceInput,
 } from './deviceApi'
+import { DeviceFiltersPanel } from './DeviceFiltersPanel'
+import { EMPTY_DEVICE_FILTERS, hasActiveDeviceFilters, type DeviceAssignee, type DeviceFilters } from './deviceFilters'
 import './devices.css'
 import './devices-issue7.css'
+import './devices-issue9.css'
 
 const emptyForm: NewDeviceInput = {
   asset_tag: '', device_type: '', manufacture: '', model: '', serial_number: '',
@@ -52,8 +55,8 @@ function deviceToForm(device: DeviceRecord): NewDeviceInput {
   }
 }
 
-function statusLabel(status: string): string {
-  return deviceStatuses[status as DeviceStatus] ?? status
+function statusLabel(status: string | null): string {
+  return status ? (deviceStatuses[status as DeviceStatus] ?? status) : 'Nicht gesetzt'
 }
 
 function visibleValue(value: unknown): string {
@@ -91,12 +94,20 @@ export function DeviceManagementPage() {
   )
   const canManage = Boolean(session && !isLoading && !isRoleLoading &&
     hasPermission(role, 'devices:manage', permissions))
+  // Geräte anlegen: auch Gerätemanager. Stammdaten ändern: nur Admins.
+  const canEdit = canManage && (role === 'admin' || role === 'super_admin')
+  // Operative Statuspflege ist auch für Gerätemanager zulässig.
+  const canChangeStatus = canManage && (role === 'device_manager' || canEdit)
   const canViewAll = hasPermission(role, 'devices:view_all', permissions)
 
   const [devices, setDevices] = useState<DeviceRecord[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
   const [refresh, setRefresh] = useState(0)
+  const [draftFilters, setDraftFilters] = useState<DeviceFilters>(EMPTY_DEVICE_FILTERS)
+  const [appliedFilters, setAppliedFilters] = useState<DeviceFilters>(EMPTY_DEVICE_FILTERS)
+  const [assignees, setAssignees] = useState<DeviceAssignee[]>([])
+  const [assigneeError, setAssigneeError] = useState('')
   const [loading, setLoading] = useState(false)
   const [listError, setListError] = useState('')
   const [selected, setSelected] = useState<DeviceRecord | null>(null)
@@ -106,6 +117,10 @@ export function DeviceManagementPage() {
   const [formError, setFormError] = useState('')
   const [message, setMessage] = useState('')
   const [saving, setSaving] = useState(false)
+  const [statusEditor, setStatusEditor] = useState<DeviceRecord | null>(null)
+  const [nextStatus, setNextStatus] = useState<'available' | 'defective' | 'maintenance' | 'retired'>('available')
+  const [statusError, setStatusError] = useState('')
+  const [statusSaving, setStatusSaving] = useState(false)
   const newButton = useRef<HTMLButtonElement>(null)
   const suggestionRequest = useRef(0)
 
@@ -116,7 +131,7 @@ export function DeviceManagementPage() {
       setLoading(true)
       setListError('')
       try {
-        const result = await deviceApi.list(userId, canViewAll, page)
+        const result = await deviceApi.list(userId, canViewAll, page, appliedFilters)
         if (!active) return
         setDevices(result.devices)
         setTotal(result.total)
@@ -135,7 +150,38 @@ export function DeviceManagementPage() {
     }
     void load()
     return () => { active = false }
-  }, [canRead, canViewAll, userId, page, refresh])
+  }, [canRead, canViewAll, userId, page, refresh, appliedFilters])
+
+  useEffect(() => {
+    if (!canRead || !canViewAll) return
+    let active = true
+    void deviceApi.assignees(canViewAll).then((options) => {
+      if (active) { setAssignees(options); setAssigneeError('') }
+    }).catch(() => {
+      if (active) {
+        setAssignees([])
+        setAssigneeError('Mitarbeiterfilter nicht verfügbar. Bitte die Leserechte für Zuweisungen prüfen.')
+      }
+    })
+    return () => { active = false }
+  }, [canRead, canViewAll, refresh])
+
+  function applyFilters() {
+    setSelected(null)
+    setEditor(null)
+    setStatusEditor(null)
+    setPage(0)
+    setAppliedFilters({ ...draftFilters, search: draftFilters.search.trim(), deviceType: draftFilters.deviceType.trim() })
+  }
+
+  function resetFilters() {
+    setDraftFilters(EMPTY_DEVICE_FILTERS)
+    setAppliedFilters(EMPTY_DEVICE_FILTERS)
+    setSelected(null)
+    setEditor(null)
+    setStatusEditor(null)
+    setPage(0)
+  }
 
   function closeEditor() {
     suggestionRequest.current += 1
@@ -153,6 +199,7 @@ export function DeviceManagementPage() {
     setMessage('')
     setDetailsOpen(false)
     setSelected(null)
+    setStatusEditor(null)
     setEditor('create')
     void deviceApi.suggestNextAssetTag().then((tag) => {
       if (request === suggestionRequest.current) {
@@ -162,7 +209,8 @@ export function DeviceManagementPage() {
   }
 
   function openEdit(device: DeviceRecord) {
-    if (!canManage) return
+    if (!canEdit) return
+    setStatusEditor(null)
     suggestionRequest.current += 1
     setSelected(device)
     setForm(deviceToForm(device))
@@ -182,7 +230,7 @@ export function DeviceManagementPage() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (saving || !canManage || !userId || !editor) return
+    if (saving || !canManage || (editor === 'edit' && !canEdit) || !userId || !editor) return
     setSaving(true)
     setFormError('')
     const editingId = selected?.id
@@ -207,6 +255,38 @@ export function DeviceManagementPage() {
     }
   }
 
+  function openStatusEditor(device: DeviceRecord) {
+    if (!canChangeStatus || device.status === 'assigned' || device.status === 'retired') return
+    setEditor(null)
+    setSelected(null)
+    setStatusEditor(device)
+    setStatusError('')
+    setMessage('')
+    setNextStatus(device.status === 'available' ? 'maintenance' : 'available')
+  }
+
+  async function saveStatus() {
+    if (!statusEditor || !canChangeStatus || statusSaving) return
+    if (statusEditor.status === nextStatus) return
+    if (nextStatus === 'retired' && !canEdit) return
+    if (nextStatus === 'retired' && !window.confirm('Dieses Gerät wirklich ausmustern? Dieser Status ist endgültig.')) return
+    setStatusSaving(true)
+    setStatusError('')
+    try {
+      await deviceApi.changeStatus(statusEditor.id, nextStatus)
+      setMessage(`Gerätestatus von ${statusEditor.asset_tag} auf „${statusLabel(nextStatus)}“ geändert.`)
+      setStatusEditor(null)
+      setSelected(null)
+      setRefresh((value) => value + 1)
+    } catch (error) {
+      setStatusError(error instanceof DeviceApiError
+        ? error.message
+        : 'Der Gerätestatus konnte nicht geändert werden.')
+    } finally {
+      setStatusSaving(false)
+    }
+  }
+
   if (!canRead) {
     return <PageContainer><PageHeader
       title="Zugriff verweigert"
@@ -225,6 +305,13 @@ export function DeviceManagementPage() {
           {canManage && <button ref={newButton} className="devices-button devices-button--primary"
             type="button" disabled={Boolean(editor)} onClick={openCreate}>Gerät anlegen</button>}
         </div>
+        <DeviceFiltersPanel value={draftFilters} onChange={setDraftFilters}
+          onSearch={applyFilters} onReset={resetFilters}
+          assignees={assignees} assigneeError={assigneeError}
+          showEmployeeFilter={canViewAll} disabled={loading}
+          hasAppliedFilters={hasActiveDeviceFilters(appliedFilters)} />
+        {!listError && !loading && hasActiveDeviceFilters(appliedFilters) &&
+          <p className="devices-filter-summary" role="status">{total} Treffer für die gewählten Filter</p>}
         {listError ? (
           <div role="alert">
             <p className="devices-error">{listError}</p>
@@ -235,9 +322,11 @@ export function DeviceManagementPage() {
         ) : loading ? (
           <p className="devices-help" role="status">Geräte werden geladen …</p>
         ) : devices.length === 0 ? (
-          <p className="devices-help">{page === 0
-            ? (canViewAll ? 'Noch keine Geräte vorhanden.' : 'Dir sind aktuell keine Geräte zugewiesen.')
-            : 'Auf dieser Seite sind keine Geräte vorhanden.'}</p>
+          <p className="devices-help">{hasActiveDeviceFilters(appliedFilters)
+            ? 'Keine Geräte entsprechen den gewählten Such- und Filterkriterien.'
+            : page === 0
+              ? (canViewAll ? 'Noch keine Geräte vorhanden.' : 'Dir sind aktuell keine Geräte zugewiesen.')
+              : 'Auf dieser Seite sind keine Geräte vorhanden.'}</p>
         ) : (
           <div className="devices-table-scroll">
             <table className="devices-table">
@@ -255,11 +344,15 @@ export function DeviceManagementPage() {
                 <td><span className="devices-status">{statusLabel(device.status)}</span></td>
                 <td><div className="devices-row-actions">
                   <button type="button" className="devices-button"
-                    onClick={() => { setEditor(null); setSelected(device) }}>
+                    onClick={() => { setStatusEditor(null); setEditor(null); setSelected(device) }}>
                     Details
                   </button>
-                  {canManage && <button type="button" className="devices-button"
+                  {canEdit && <button type="button" className="devices-button"
                     onClick={() => openEdit(device)}>Bearbeiten</button>}
+                  {canChangeStatus && <button type="button" className="devices-button"
+                    disabled={device.status === 'assigned' || device.status === 'retired'}
+                    title={device.status === 'assigned' ? 'Zugewiesene Geräte werden über die Rückgabe freigegeben.' : device.status === 'retired' ? 'Ausgemusterte Geräte sind gesperrt.' : undefined}
+                    onClick={() => openStatusEditor(device)}>Status ändern</button>}
                 </div></td>
               </tr>)}</tbody>
             </table>
@@ -290,11 +383,41 @@ export function DeviceManagementPage() {
             <dt>{label}</dt><dd>{visibleValue(selected[field])}</dd>
           </div>)}
         </dl>
-        {canManage && <button type="button" className="devices-button devices-button--primary"
+        {canEdit && <button type="button" className="devices-button devices-button--primary"
           onClick={() => openEdit(selected)}>Gerät bearbeiten</button>}
+        {canChangeStatus && <button type="button" className="devices-button"
+          disabled={selected.status === 'assigned' || selected.status === 'retired'}
+          onClick={() => openStatusEditor(selected)}>Status ändern</button>}
       </section>}
 
-      {editor && canManage && <section className="devices-panel" aria-labelledby="devices-editor-title">
+      {statusEditor && canChangeStatus && <section className="devices-panel" aria-labelledby="device-status-title">
+        <h2 id="device-status-title">Gerätestatus ändern – {statusEditor.asset_tag}</h2>
+        <p className="devices-help">Aktuell: <strong>{statusLabel(statusEditor.status)}</strong>.
+          „Zugewiesen“ wird ausschließlich über die Gerätezuweisung gesetzt.
+          Ein zugewiesenes Gerät muss zuerst zurückgenommen werden.</p>
+        <div className="devices-status-controls">
+          <label htmlFor="device-status-select">Neuer Status
+            <select id="device-status-select" disabled={statusSaving}
+              value={nextStatus} onChange={(event) => setNextStatus(event.target.value as typeof nextStatus)}>
+              <option value="available">Verfügbar</option>
+              <option value="defective">Defekt</option>
+              <option value="maintenance">Wartung</option>
+              {canEdit && <option value="retired">Ausgemustert</option>}
+            </select>
+          </label>
+          <div className="devices-actions">
+            <button type="button" className="devices-button devices-button--primary"
+              onClick={() => void saveStatus()} disabled={statusSaving || statusEditor.status === nextStatus}>
+              {statusSaving ? 'Wird gespeichert …' : 'Status speichern'}
+            </button>
+            <button type="button" className="devices-button" disabled={statusSaving}
+              onClick={() => { setStatusEditor(null); setStatusError('') }}>Abbrechen</button>
+          </div>
+        </div>
+        {statusError && <p role="alert" className="devices-error">{statusError}</p>}
+      </section>}
+
+      {editor && canManage && (editor === 'create' || canEdit) && <section className="devices-panel" aria-labelledby="devices-editor-title">
         <h2 id="devices-editor-title">{editor === 'edit' ? 'Gerät bearbeiten' : 'Gerät anlegen'}</h2>
         <form onSubmit={submit} aria-busy={saving}>
           <fieldset className="devices-fields" disabled={saving}>
