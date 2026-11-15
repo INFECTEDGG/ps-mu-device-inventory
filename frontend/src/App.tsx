@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react'
 import { AppLayout } from './components/layout/AppLayout'
 import { PageContainer } from './components/ui/PageContainer'
@@ -14,9 +13,9 @@ import { PlaceholderPage } from './pages/PlaceholderPage'
 import { RolePermissionsPage } from './features/roles/RolePermissionsPage'
 import { UserManagementPage } from './features/users/UserManagementPage'
 import { DeviceManagementPage } from './features/devices/DeviceManagementPage'
+import { AssignmentManagementPage } from './features/assignments/AssignmentManagementPage'
 
 export default function App() {
-  // Authentifizierung und Benutzerrolle über Micha
   const {
     session,
     role,
@@ -27,23 +26,12 @@ export default function App() {
     reloadProfile,
   } = useAuthSession()
 
-  // Bestehende Navigation
   const { currentPath, navigate } = useAppNavigation()
-
-  const currentPage = navigationEntries.find(
-    (entry) => entry.path === currentPath,
-  )
-
-  // RBAC: Prüfen, ob die Benutzerrolle
-  // die erforderliche Seitenberechtigung besitzt.
+  const currentPage = navigationEntries.find(entry => entry.path === currentPath)
   const hasAccess = currentPage
     ? hasPermission(role, currentPage.requiredPermission, permissions)
     : false
-
-  // Während Authentifizierung und Rollenprüfung
-  // keine geschützten Inhalte anzeigen.
-  const isChecking =
-    isLoading || (session !== null && isRoleLoading)
+  const isChecking = isLoading || (session !== null && isRoleLoading)
 
   const title = isChecking
     ? 'Sitzung wird geprüft'
@@ -57,74 +45,41 @@ export default function App() {
 
   useEffect(() => {
     document.title = `${title} | Device Inventory`
-
-    const frame = requestAnimationFrame(() => {
-      document.getElementById('page-title')?.focus()
-    })
-
+    const frame = requestAnimationFrame(() => document.getElementById('page-title')?.focus())
     return () => cancelAnimationFrame(frame)
   }, [title, currentPath])
 
-  // Sitzung oder Rolle wird geladen.
   if (isChecking) {
-    return (
-      <main className="login-page" aria-busy="true">
-        <p role="status">
-          {isLoading
-            ? 'Sitzung wird geprüft …'
-            : 'Zugriffsberechtigungen werden geprüft …'}
-        </p>
-      </main>
-    )
+    return <main className="login-page" aria-busy="true">
+      <p role="status">{isLoading ? 'Sitzung wird geprüft …' : 'Zugriffsberechtigungen werden geprüft …'}</p>
+    </main>
   }
+  if (!session) return <LoginPage />
+  if (profileError) return <AccountAccessPage message={profileError} onRetry={reloadProfile} />
+  if (currentPath === '/login') return <LoginPage />
 
-  // Kein angemeldeter Benutzer: Login anzeigen.
-  if (!session) {
-    return <LoginPage />
-  }
-
-  // Benutzerprofil oder Rolle konnte nicht geladen werden.
-  if (profileError) {
-    return (
-      <AccountAccessPage
-        message={profileError}
-        onRetry={reloadProfile}
-      />
-    )
-  }
-
-  // Login-Seite separat behandeln.
-  if (currentPath === '/login') {
-    return <LoginPage />
-  }
-
-  // Geschützte Anwendung.
-  return (
-    <AppLayout
-      currentPage={currentPage?.label ?? 'Nicht gefunden'}
-      currentPath={currentPath}
-      onNavigate={navigate}
-      role={role}
-      permissions={permissions}
-    >
-      {!currentPage ? (
-        <NotFoundPage onNavigate={navigate} />
-      ) : !hasAccess ? (
-        <PageContainer>
-          <PageHeader
-            title="Zugriff verweigert"
-            description="Du hast keine Berechtigung, diese Seite aufzurufen."
-          />
-        </PageContainer>
-      ) : currentPath === '/rollenverwaltung' ? (
-        <RolePermissionsPage />
-      ) : currentPath === '/benutzerverwaltung' ? (
-        <UserManagementPage />
-      ) : currentPath === '/geraete' ? (
-        <DeviceManagementPage />
-      ) : (
-        <PlaceholderPage page={currentPage} />
-      )}
-    </AppLayout>
-  )
+  return <AppLayout
+    currentPage={currentPage?.label ?? 'Nicht gefunden'}
+    currentPath={currentPath}
+    onNavigate={navigate}
+    role={role}
+    permissions={permissions}
+  >
+    {!currentPage ? (
+      <NotFoundPage onNavigate={navigate} />
+    ) : !hasAccess ? (
+      <PageContainer><PageHeader title="Zugriff verweigert"
+        description="Du hast keine Berechtigung, diese Seite aufzurufen." /></PageContainer>
+    ) : currentPath === '/rollenverwaltung' ? (
+      <RolePermissionsPage />
+    ) : currentPath === '/benutzerverwaltung' ? (
+      <UserManagementPage />
+    ) : currentPath === '/geraete' ? (
+      <DeviceManagementPage />
+    ) : currentPath === '/zuweisungen' ? (
+      <AssignmentManagementPage onNavigateToDevices={(event) => navigate('/geraete', event)} />
+    ) : (
+      <PlaceholderPage page={currentPage} />
+    )}
+  </AppLayout>
 }

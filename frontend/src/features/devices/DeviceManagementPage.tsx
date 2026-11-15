@@ -12,10 +12,13 @@ import {
   type NewDeviceInput,
 } from './deviceApi'
 import { DeviceFiltersPanel } from './DeviceFiltersPanel'
+import { DeviceAssignmentPanel } from './DeviceAssignmentPanel'
+import { isDeviceAssignable, mayAssignDevices } from './deviceAssignmentRules'
 import { EMPTY_DEVICE_FILTERS, hasActiveDeviceFilters, type DeviceAssignee, type DeviceFilters } from './deviceFilters'
 import './devices.css'
 import './devices-issue7.css'
 import './devices-issue9.css'
+import './devices-issue10.css'
 
 const emptyForm: NewDeviceInput = {
   asset_tag: '', device_type: '', manufacture: '', model: '', serial_number: '',
@@ -99,6 +102,8 @@ export function DeviceManagementPage() {
   // Operative Statuspflege ist auch für Gerätemanager zulässig.
   const canChangeStatus = canManage && (role === 'device_manager' || canEdit)
   const canViewAll = hasPermission(role, 'devices:view_all', permissions)
+  const canAssign = Boolean(session && !isLoading && !isRoleLoading &&
+    mayAssignDevices(role, permissions))
 
   const [devices, setDevices] = useState<DeviceRecord[]>([])
   const [total, setTotal] = useState(0)
@@ -118,6 +123,7 @@ export function DeviceManagementPage() {
   const [message, setMessage] = useState('')
   const [saving, setSaving] = useState(false)
   const [statusEditor, setStatusEditor] = useState<DeviceRecord | null>(null)
+  const [assigningDevice, setAssigningDevice] = useState<DeviceRecord | null>(null)
   const [nextStatus, setNextStatus] = useState<'available' | 'defective' | 'maintenance' | 'retired'>('available')
   const [statusError, setStatusError] = useState('')
   const [statusSaving, setStatusSaving] = useState(false)
@@ -170,6 +176,7 @@ export function DeviceManagementPage() {
     setSelected(null)
     setEditor(null)
     setStatusEditor(null)
+    setAssigningDevice(null)
     setPage(0)
     setAppliedFilters({ ...draftFilters, search: draftFilters.search.trim(), deviceType: draftFilters.deviceType.trim() })
   }
@@ -180,6 +187,7 @@ export function DeviceManagementPage() {
     setSelected(null)
     setEditor(null)
     setStatusEditor(null)
+    setAssigningDevice(null)
     setPage(0)
   }
 
@@ -200,6 +208,7 @@ export function DeviceManagementPage() {
     setDetailsOpen(false)
     setSelected(null)
     setStatusEditor(null)
+    setAssigningDevice(null)
     setEditor('create')
     void deviceApi.suggestNextAssetTag().then((tag) => {
       if (request === suggestionRequest.current) {
@@ -211,6 +220,7 @@ export function DeviceManagementPage() {
   function openEdit(device: DeviceRecord) {
     if (!canEdit) return
     setStatusEditor(null)
+    setAssigningDevice(null)
     suggestionRequest.current += 1
     setSelected(device)
     setForm(deviceToForm(device))
@@ -259,6 +269,7 @@ export function DeviceManagementPage() {
     if (!canChangeStatus || device.status === 'assigned' || device.status === 'retired') return
     setEditor(null)
     setSelected(null)
+    setAssigningDevice(null)
     setStatusEditor(device)
     setStatusError('')
     setMessage('')
@@ -285,6 +296,22 @@ export function DeviceManagementPage() {
     } finally {
       setStatusSaving(false)
     }
+  }
+
+  function openAssignment(device: DeviceRecord) {
+    if (!canAssign || !isDeviceAssignable(device.status)) return
+    suggestionRequest.current += 1
+    setSelected(null)
+    setEditor(null)
+    setStatusEditor(null)
+    setMessage('')
+    setAssigningDevice(device)
+  }
+
+  function assignmentCompleted(assetTag: string) {
+    setAssigningDevice(null)
+    setMessage(`Gerät ${assetTag} wurde zugewiesen.`)
+    setRefresh(value => value + 1)
   }
 
   if (!canRead) {
@@ -344,11 +371,15 @@ export function DeviceManagementPage() {
                 <td><span className="devices-status">{statusLabel(device.status)}</span></td>
                 <td><div className="devices-row-actions">
                   <button type="button" className="devices-button"
-                    onClick={() => { setStatusEditor(null); setEditor(null); setSelected(device) }}>
+                    onClick={() => { setAssigningDevice(null); setStatusEditor(null); setEditor(null); setSelected(device) }}>
                     Details
                   </button>
                   {canEdit && <button type="button" className="devices-button"
                     onClick={() => openEdit(device)}>Bearbeiten</button>}
+                  {canAssign && <button type="button" className="devices-button"
+                    disabled={!isDeviceAssignable(device.status)}
+                    title={!isDeviceAssignable(device.status) ? 'Nur verfügbare Geräte können zugewiesen werden.' : undefined}
+                    onClick={() => openAssignment(device)}>Zuweisen</button>}
                   {canChangeStatus && <button type="button" className="devices-button"
                     disabled={device.status === 'assigned' || device.status === 'retired'}
                     title={device.status === 'assigned' ? 'Zugewiesene Geräte werden über die Rückgabe freigegeben.' : device.status === 'retired' ? 'Ausgemusterte Geräte sind gesperrt.' : undefined}
@@ -360,13 +391,13 @@ export function DeviceManagementPage() {
         )}
         {!listError && !loading && total > DEVICE_PAGE_SIZE && <div className="devices-pagination">
           <button type="button" className="devices-button" disabled={page === 0}
-            onClick={() => { setPage((value) => Math.max(0, value - 1)); setSelected(null); setEditor(null) }}>
+            onClick={() => { setPage((value) => Math.max(0, value - 1)); setSelected(null); setEditor(null); setAssigningDevice(null) }}>
             Zurück
           </button>
           <span>Seite {page + 1} von {Math.ceil(total / DEVICE_PAGE_SIZE)}</span>
           <button type="button" className="devices-button"
             disabled={(page + 1) * DEVICE_PAGE_SIZE >= total}
-            onClick={() => { setPage((value) => value + 1); setSelected(null); setEditor(null) }}>
+            onClick={() => { setPage((value) => value + 1); setSelected(null); setEditor(null); setAssigningDevice(null) }}>
             Weiter
           </button>
         </div>}
@@ -385,10 +416,19 @@ export function DeviceManagementPage() {
         </dl>
         {canEdit && <button type="button" className="devices-button devices-button--primary"
           onClick={() => openEdit(selected)}>Gerät bearbeiten</button>}
+        {canAssign && <button type="button" className="devices-button"
+          disabled={!isDeviceAssignable(selected.status)}
+          onClick={() => openAssignment(selected)}>Zuweisen</button>}
         {canChangeStatus && <button type="button" className="devices-button"
           disabled={selected.status === 'assigned' || selected.status === 'retired'}
           onClick={() => openStatusEditor(selected)}>Status ändern</button>}
       </section>}
+
+      {assigningDevice && canAssign && <DeviceAssignmentPanel
+        device={assigningDevice}
+        onCancel={() => setAssigningDevice(null)}
+        onSuccess={assignmentCompleted}
+      />}
 
       {statusEditor && canChangeStatus && <section className="devices-panel" aria-labelledby="device-status-title">
         <h2 id="device-status-title">Gerätestatus ändern – {statusEditor.asset_tag}</h2>
