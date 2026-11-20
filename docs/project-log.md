@@ -208,7 +208,7 @@ Sprint 1 wurde vollständig abgeschlossen.
 
 ### Entscheidungen
 
-- Ümit hat Zwangsurlaub (Tasks)
+- Ümit hat Zwangsurlaub (Aufgrund seiner engagierten Leistung in den bisherigen Tasks)
 
 ### Änderungen / Fortschritt
 
@@ -217,18 +217,58 @@ Sprint 1 wurde vollständig abgeschlossen.
 
 ### Probleme / offene Fragen
 
-- Bei der Filterfunktion werden die Mitarbeiter nicht sauber übergeben
+- Bei der Filterfunktion werden die Mitarbeiter nicht sauber übergeben [Siehe Task #7](https://github.com/INFECTEDGG/ps-mu-device-inventory/issues/9)
 
 ### Nächste Schritte
 
-- Sprint 4 beginnen Tasks 10, 11, 13, 14
-- Auf Dashboard Schrift ("Aktuelle Supabase-Daten · entsprechend deinen Berechtigungen") entfernen
-- In der Seitenleiste ("UI-GrundgerüstBereit für Fachmodule")
+- Sprint 5 beginnen Tasks 10, 11, 13, 14
+- Auf Dashboard Schriftzug: "Aktuelle Supabase-Daten · entsprechend deinen Berechtigungen" entfernen
+- Den Schriftzug in der Seitenleiste: "UI-GrundgerüstBereit für Fachmodule" entfernen
 - Zuweisungen in Geräteseite implementieren. 
+- Auf Dashboard Funktionen mit Links zu den jeweiligen Bereichen hinterlegen
+- Fenster der Arbeitsbereichsektionen können etwas größer werden
 
 ### Ideen für optionale Features
 
 - Report Button für die Plattform (Kontaktformular)
 - Benachrichtigung per Mail bei Gerätezuweisung/Änderung/Hinweis/Garantieende
+- Bei Nutzerregistrierung bekommt der neue Benutzer die Zugangsdaten für seinen Account via E-Mail übermittelt
 - Softwareinventar von einzelnen Geräten
 - Hardwarebestellungsformular als Mitarbeiter an die IT
+- MFA bei Login implementieren
+- Geräte über CSV inventarisieren
+- Unterschiedliche Ansichten als Admin und Mitarbeiter. Mitarbeiter soll nur seine Geräte und seine Tickets aus dem Ticketsystem sehen können.
+- Benutzerprofil in Einstellungen könnte Mitarbeiterdaten spezifisch aufführen
+
+
+---
+
+## 27.11.2026 - Zwischenpräsentation
+
+### Teilnehmer
+
+- Maximilian Stephan (223702)
+- Louis Sämann (223519)
+- Tom Jarolim (222880)
+- Manuel Pflaum (219241)
+- Ali Ahmad (227308)
+- Guilliermo Morishige-Takane (224921)
+- Ümit Emekse (220857)
+
+### Entscheidungen
+
+- 
+
+### Änderungen / Fortschritt
+
+- 
+
+### Probleme / offene Fragen
+
+- 
+
+### Nächste Schritte
+
+- Sprint 5 abschließen.
+
+---
