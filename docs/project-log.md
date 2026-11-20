@@ -193,3 +193,42 @@ Sprint 1 wurde vollständig abgeschlossen.
 ### Nächste Schritte
 
 - Sprint 3 abschließen.
+
+---
+
+## 20.11.2026
+
+### Teilnehmer
+
+- Maximilian Stephan (223702)
+- Louis Sämann (223519)
+- Guilliermo Morishige-Takane (224921)
+- Tom Jarolim (222880)
+
+
+### Entscheidungen
+
+- Ümit hat Zwangsurlaub (Tasks)
+
+### Änderungen / Fortschritt
+
+- Sprint 3 abgeschlossen
+- Sprint 4 wird begonnen
+
+### Probleme / offene Fragen
+
+- Bei der Filterfunktion werden die Mitarbeiter nicht sauber übergeben
+
+### Nächste Schritte
+
+- Sprint 4 beginnen Tasks 10, 11, 13, 14
+- Auf Dashboard Schrift ("Aktuelle Supabase-Daten · entsprechend deinen Berechtigungen") entfernen
+- In der Seitenleiste ("UI-GrundgerüstBereit für Fachmodule")
+- Zuweisungen in Geräteseite implementieren. 
+
+### Ideen für optionale Features
+
+- Report Button für die Plattform (Kontaktformular)
+- Benachrichtigung per Mail bei Gerätezuweisung/Änderung/Hinweis/Garantieende
+- Softwareinventar von einzelnen Geräten
+- Hardwarebestellungsformular als Mitarbeiter an die IT
