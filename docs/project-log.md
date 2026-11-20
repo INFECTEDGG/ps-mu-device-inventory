@@ -212,8 +212,8 @@ Sprint 1 wurde vollständig abgeschlossen.
 
 ### Änderungen / Fortschritt
 
-- Sprint 3 abgeschlossen
-- Sprint 4 wird begonnen
+- Sprint 3 + 4 abgeschlossen
+- Sprint 5 wird begonnen
 
 ### Probleme / offene Fragen
 
