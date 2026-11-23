@@ -1,12 +1,7 @@
 {
-  "name": "device-inventory-database",
+  "name": "device-inventory-database-tests",
   "private": true,
-  "version": "0.1.0",
   "type": "module",
-  "scripts": {
-    "test": "node --test"
-  },
-  "devDependencies": {
-    "@electric-sql/pglite": "0.5.8"
-  }
+  "scripts": { "test": "node --test tests/*.test.mjs" },
+  "devDependencies": { "@electric-sql/pglite": "0.5.8" }
 }

@@ -1,3 +1,4 @@
+
 import {
   useCallback,
   useEffect,
@@ -6,6 +7,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from 'react'
+import type { Permission, Role } from '../../config/permissions'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 
@@ -13,14 +15,30 @@ interface AppLayoutProps {
   children: ReactNode
   currentPage: string
   currentPath: string
-  onNavigate: (path: string, event: MouseEvent<HTMLAnchorElement>) => void
+  onNavigate: (
+    path: string,
+    event: MouseEvent<HTMLAnchorElement>
+  ) => void
+  role: Role | null
+  permissions?: readonly Permission[] | null
 }
 
 const desktopNavigationQuery = '(min-width: 64.0625rem)'
 
-export function AppLayout({ children, currentPage, currentPath, onNavigate }: AppLayoutProps) {
+export function AppLayout({
+  children,
+  currentPage,
+  currentPath,
+  onNavigate,
+  role,
+  permissions,
+}: AppLayoutProps) {
   const [isNavigationOpen, setIsNavigationOpen] = useState(false)
-  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(desktopNavigationQuery).matches)
+
+  const [isDesktop, setIsDesktop] = useState(() =>
+    window.matchMedia(desktopNavigationQuery).matches
+  )
+
   const navigationRef = useRef<HTMLElement>(null)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -39,24 +57,36 @@ export function AppLayout({ children, currentPage, currentPath, onNavigate }: Ap
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(desktopNavigationQuery)
+
     const handleChange = (event: MediaQueryListEvent) => {
       setIsDesktop(event.matches)
-      if (event.matches) setIsNavigationOpen(false)
+
+      if (event.matches) {
+        setIsNavigationOpen(false)
+      }
     }
 
     mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange)
+    }
   }, [])
 
   useEffect(() => {
     if (!isNavigationOpen || isDesktop) return
 
     const navigation = navigationRef.current
+
     const focusableElements = navigation?.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled])',
     )
+
     const firstElement = focusableElements?.item(0)
-    const lastElement = focusableElements?.item((focusableElements?.length ?? 1) - 1)
+
+    const lastElement = focusableElements?.item(
+      (focusableElements?.length ?? 1) - 1,
+    )
 
     document.body.classList.add('navigation-is-open')
     firstElement?.focus()
@@ -73,13 +103,17 @@ export function AppLayout({ children, currentPage, currentPath, onNavigate }: Ap
       if (event.shiftKey && document.activeElement === firstElement) {
         event.preventDefault()
         lastElement.focus()
-      } else if (!event.shiftKey && document.activeElement === lastElement) {
+      } else if (
+        !event.shiftKey &&
+        document.activeElement === lastElement
+      ) {
         event.preventDefault()
         firstElement.focus()
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
+
     return () => {
       document.body.classList.remove('navigation-is-open')
       document.removeEventListener('keydown', handleKeyDown)
@@ -90,7 +124,9 @@ export function AppLayout({ children, currentPage, currentPath, onNavigate }: Ap
 
   return (
     <div className="app-shell">
-      <a className="skip-link" href="#main-content">Zum Hauptinhalt springen</a>
+      <a className="skip-link" href="#main-content">
+        Zum Hauptinhalt springen
+      </a>
 
       <Sidebar
         currentPath={currentPath}
@@ -98,6 +134,8 @@ export function AppLayout({ children, currentPage, currentPath, onNavigate }: Ap
         isOpen={isNavigationOpen}
         onClose={closeNavigation}
         onNavigate={handleNavigate}
+        role={role}
+        permissions={permissions}
         ref={navigationRef}
       />
 
@@ -111,14 +149,22 @@ export function AppLayout({ children, currentPage, currentPath, onNavigate }: Ap
         />
       ) : null}
 
-      <div className="app-shell__workspace" inert={isNavigationOpen && !isDesktop}>
+      <div
+        className="app-shell__workspace"
+        inert={isNavigationOpen && !isDesktop}
+      >
         <Header
           currentPage={currentPage}
           isNavigationOpen={isNavigationOpen}
           onOpenNavigation={() => setIsNavigationOpen(true)}
           ref={menuButtonRef}
         />
-        <main className="main-content" id="main-content" tabIndex={-1}>
+
+        <main
+          className="main-content"
+          id="main-content"
+          tabIndex={-1}
+        >
           {children}
         </main>
       </div>

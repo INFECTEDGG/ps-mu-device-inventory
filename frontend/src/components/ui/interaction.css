@@ -1,0 +1,50 @@
+/* Shared interaction feedback; one behavior across all modules. */
+.interaction-reveal, .interaction-notice {
+  scroll-margin-top: 1.5rem;
+}
+.interaction-reveal {
+  box-shadow: 0 0 0 2px rgba(40, 85, 197, 0.12);
+}
+.interaction-reveal h2:focus {
+  outline: none;
+}
+.interaction-notice {
+  padding: .85rem 1rem;
+  border: 1px solid #a8ddc2;
+  border-radius: var(--radius-small);
+  background: #effbf4;
+  color: #14553e;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.interaction-notice--error {
+  border-color: #f0b6b6;
+  background: #fff0f0;
+  color: #982828;
+}
+.interaction-notice:focus {
+  outline: none;
+}
+/* Better visibility that a button was activated. */
+.devices-button:active:not(:disabled),
+.users-button:active:not(:disabled),
+.assignments-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+@media (max-width: 40rem) {
+  .devices-toolbar, .users-toolbar, .assignments-toolbar {
+    align-items: stretch;
+  }
+  .devices-row-actions > button, .users-actions > button {
+    min-width: 6.5rem;
+  }
+  .devices-table, .assignments-table {
+    min-width: 40rem;
+  }
+  .interaction-notice {
+    padding: .75rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .devices-button, .users-button, .assignments-button { transition: none; }
+}

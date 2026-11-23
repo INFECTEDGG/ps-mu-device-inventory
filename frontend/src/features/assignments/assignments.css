@@ -1,0 +1,34 @@
+.assignments-panel {
+  margin-top: 1.5rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface);
+}
+.assignments-panel h2 { font-size: 1.25rem; margin: 0; }
+.assignments-toolbar, .assignments-tabs, .assignments-pagination {
+  display: flex; gap: .65rem; align-items: center; flex-wrap: wrap;
+}
+.assignments-toolbar, .assignments-pagination { justify-content: space-between; }
+.assignments-tabs { margin: 1.5rem 0 1rem; }
+.assignments-button {
+  display: inline-flex; align-items: center; text-decoration: none; min-height: 2.7rem; padding: .6rem .9rem;
+  border-radius: var(--radius-small); border: 1px solid var(--color-border);
+  background: #fff; color: var(--color-ink); font: inherit; font-weight: 600; cursor: pointer;
+}
+.assignments-button:hover:enabled { background: #edf1f7; }
+.assignments-button:disabled { opacity: .5; cursor: not-allowed; }
+.assignments-button--primary { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.assignments-button--primary:hover:enabled { background: var(--color-primary-dark); }
+.assignments-button--selected { background: #eef3ff; border-color: var(--color-primary); color: var(--color-primary); }
+.assignments-table-scroll { width: 100%; overflow-x: auto; }
+.assignments-table { width: 100%; border-collapse: collapse; text-align: left; }
+.assignments-table th { background: var(--color-canvas); color: var(--color-muted); font-size: .82rem; }
+.assignments-table td, .assignments-table th { padding: .9rem .7rem; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+.assignments-table td { overflow-wrap: anywhere; }
+.assignments-muted { display: block; color: var(--color-muted); font-size: .85rem; margin-top: .25rem; }
+.assignments-pill { display: inline-block; padding: .32rem .6rem; border-radius: .5rem; background: #eef3ff; color: #2548a2; font-size: .85rem; }
+.assignments-success { color: #13634b; }
+.assignments-help { color: var(--color-muted); }
+.assignments-error { padding: 1rem; background: #fff0f0; border-radius: var(--radius-small); color: #982828; }
+.assignments-pagination { margin-top: 1rem; }

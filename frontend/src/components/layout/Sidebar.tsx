@@ -1,5 +1,7 @@
+
 import { forwardRef, type MouseEvent } from 'react'
 import { navigationEntries } from '../../config/navigation'
+import { hasPermission, type Permission, type Role } from '../../config/permissions'
 import { NavigationItem } from '../navigation/NavigationItem'
 import { AppIcon } from '../ui/AppIcon'
 
@@ -8,67 +10,101 @@ interface SidebarProps {
   isInteractive: boolean
   isOpen: boolean
   onClose: () => void
-  onNavigate: (path: string, event: MouseEvent<HTMLAnchorElement>) => void
+  onNavigate: (
+    path: string,
+    event: MouseEvent<HTMLAnchorElement>
+  ) => void
+  role: Role | null
+  permissions?: readonly Permission[] | null
 }
 
-export const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
-  { currentPath, isInteractive, isOpen, onClose, onNavigate },
-  ref,
-) {
-  return (
-    <aside
-      aria-hidden={!isInteractive}
-      aria-label="Hauptnavigation"
-      className={`sidebar${isOpen ? ' sidebar--open' : ''}`}
-      id="primary-navigation"
-      inert={!isInteractive}
-      ref={ref}
-    >
-      <div className="sidebar__brand-row">
-        <a
-          aria-label="Device Inventory – zum Dashboard"
-          className="brand"
-          href="/"
-          onClick={(event) => onNavigate('/', event)}
-        >
-          <span className="brand__mark">
-            <AppIcon name="logo" size={25} />
-          </span>
-          <span className="brand__text">
-            <strong>Device</strong>
-            <span>Inventory</span>
-          </span>
-        </a>
+export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
+  function Sidebar(
+    {
+      currentPath,
+      isInteractive,
+      isOpen,
+      onClose,
+      onNavigate,
+      role,
+      permissions,
+    },
+    ref,
+  ) {
+    // Nur Menüpunkte anzeigen, für die der Benutzer
+    // die erforderliche Berechtigung besitzt.
+    const visibleEntries = navigationEntries.filter((entry) =>
+      hasPermission(role, entry.requiredPermission, permissions)
+    )
 
-        <button className="icon-button sidebar__close" type="button" onClick={onClose}>
-          <span className="sr-only">Navigation schließen</span>
-          <AppIcon name="close" />
-        </button>
-      </div>
+    return (
+      <aside
+        aria-hidden={!isInteractive}
+        aria-label="Hauptnavigation"
+        className={`sidebar${isOpen ? ' sidebar--open' : ''}`}
+        id="primary-navigation"
+        inert={!isInteractive}
+        ref={ref}
+      >
+        <div className="sidebar__brand-row">
+          <a
+            aria-label="Device Inventory – zum Dashboard"
+            className="brand"
+            href="/"
+            onClick={(event) => onNavigate('/', event)}
+          >
+            <span className="brand__mark">
+              <AppIcon name="logo" size={25} />
+            </span>
 
-      <div className="sidebar__content">
-        <p className="sidebar__section-label">Arbeitsbereich</p>
-        <nav aria-label="Bereiche">
-          <ul className="sidebar__navigation">
-            {navigationEntries.map((entry) => (
-              <NavigationItem
-                entry={entry}
-                isActive={currentPath === entry.path}
-                key={entry.path}
-                onNavigate={onNavigate}
-              />
-            ))}
-          </ul>
-        </nav>
-      </div>
+            <span className="brand__text">
+              <strong>Device</strong>
+              <span>Inventory</span>
+            </span>
+          </a>
 
-      <div className="sidebar__footer">
-        <span className="sidebar__footer-mark" aria-hidden="true" />
-        <div>
-          <strong>UI-Grundgerüst</strong>
-          <span>Bereit für Fachmodule</span>
+          <button
+            className="icon-button sidebar__close"
+            type="button"
+            onClick={onClose}
+          >
+            <span className="sr-only">
+              Navigation schließen
+            </span>
+            <AppIcon name="close" />
+          </button>
         </div>
-      </div>
-    </aside>
-  )
-})
+
+        <div className="sidebar__content">
+          <p className="sidebar__section-label">
+            Arbeitsbereich
+          </p>
+
+          <nav aria-label="Bereiche">
+            <ul className="sidebar__navigation">
+              {visibleEntries.map((entry) => (
+                <NavigationItem
+                  entry={entry}
+                  isActive={currentPath === entry.path}
+                  key={entry.path}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </ul>
+          </nav>
+        </div>
+
+        <div className="sidebar__footer">
+          <span
+            className="sidebar__footer-mark"
+            aria-hidden="true"
+          />
+          <div>
+            <strong>UI-Grundgerüst</strong>
+            <span>Bereit für Fachmodule</span>
+          </div>
+        </div>
+      </aside>
+    )
+  }
+)

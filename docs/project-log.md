@@ -19,6 +19,7 @@ waren, können hier relevante Änderungen nachlesen.
 - Manuel Pflaum (219241)
 - Ali Ahmad (227308)
 - Guilliermo Morishige-Takane (224921)
+- Ümit Emekse (220857)
 
 ### Entscheidungen
 
@@ -142,24 +143,132 @@ Sprint 1 wurde vollständig abgeschlossen.
 
 ---
 
-## DD.MM.YYYY
+## 30.10.2026
 
 ### Teilnehmer
 
-- ...
+- Ali Ahmad (227308)
+- Tom Jarolim (222880)
 
 ### Entscheidungen
 
-- ...
+- Es wurden keine neuen Entscheidungen getroffen.
 
 ### Änderungen / Fortschritt
 
-- ...
+- Keine Änderungen oder Fortschritte dokumentiert.
 
 ### Probleme / offene Fragen
 
-- ...
+- Keine neuen Probleme oder offenen Fragen dokumentiert.
 
 ### Nächste Schritte
 
-- ...
+- Sprint 3 anfangen und abschließen.
+
+---
+
+## 06.11.2026
+
+### Teilnehmer
+
+- Maximilian Stephan (223702)
+- Louis Sämann (223519)
+- Ali Ahmad (227308)
+- Guilliermo Morishige-Takane (224921)
+- Ümit Emekse (220857)
+
+### Entscheidungen
+
+- Tasks 4, 5, 6, 7 bis 13.11.2026 abarbeiten.
+
+### Änderungen / Fortschritt
+
+- Task 1-3 fertig abgeschlossen.
+
+### Probleme / offene Fragen
+
+- Implementierung mit Public Keys für die Datenbank waren etwas komplizierter.
+
+### Nächste Schritte
+
+- Sprint 3 abschließen.
+
+---
+
+## 20.11.2026
+
+### Teilnehmer
+
+- Maximilian Stephan (223702)
+- Louis Sämann (223519)
+- Guilliermo Morishige-Takane (224921)
+- Tom Jarolim (222880)
+
+
+### Entscheidungen
+
+- Ümit hat Zwangsurlaub (Aufgrund seiner engagierten Leistung in den bisherigen Tasks)
+
+### Änderungen / Fortschritt
+
+- Sprint 3 + 4 abgeschlossen
+- Sprint 5 wird begonnen
+
+### Probleme / offene Fragen
+
+- Bei der Filterfunktion werden die Mitarbeiter nicht sauber übergeben [Siehe Task #7](https://github.com/INFECTEDGG/ps-mu-device-inventory/issues/9)
+
+### Nächste Schritte
+
+- Sprint 5 beginnen Tasks 10, 11, 13, 14
+- Auf Dashboard Schriftzug: "Aktuelle Supabase-Daten · entsprechend deinen Berechtigungen" entfernen
+- Den Schriftzug in der Seitenleiste: "UI-GrundgerüstBereit für Fachmodule" entfernen
+- Zuweisungen in Geräteseite implementieren. 
+- Auf Dashboard Funktionen mit Links zu den jeweiligen Bereichen hinterlegen
+- Fenster der Arbeitsbereichsektionen können etwas größer werden
+
+### Ideen für optionale Features
+
+- Report Button für die Plattform (Kontaktformular)
+- Benachrichtigung per Mail bei Gerätezuweisung/Änderung/Hinweis/Garantieende
+- Bei Nutzerregistrierung bekommt der neue Benutzer die Zugangsdaten für seinen Account via E-Mail übermittelt
+- Softwareinventar von einzelnen Geräten
+- Hardwarebestellungsformular als Mitarbeiter an die IT
+- MFA bei Login implementieren
+- Geräte über CSV inventarisieren
+- Unterschiedliche Ansichten als Admin und Mitarbeiter. Mitarbeiter soll nur seine Geräte und seine Tickets aus dem Ticketsystem sehen können.
+- Benutzerprofil in Einstellungen könnte Mitarbeiterdaten spezifisch aufführen
+
+
+---
+
+## 27.11.2026 - Zwischenpräsentation
+
+### Teilnehmer
+
+- Maximilian Stephan (223702)
+- Louis Sämann (223519)
+- Tom Jarolim (222880)
+- Manuel Pflaum (219241)
+- Ali Ahmad (227308)
+- Guilliermo Morishige-Takane (224921)
+- Ümit Emekse (220857)
+
+### Entscheidungen
+
+- 
+
+### Änderungen / Fortschritt
+
+- 
+
+### Probleme / offene Fragen
+
+- 
+
+### Nächste Schritte
+
+- Sprint 5 abschließen.
+
+---
