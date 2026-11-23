@@ -10,12 +10,13 @@ import {
   DeviceApiError,
   deviceApi,
   type DeviceRecord,
-  type DeviceStatus,
   type NewDeviceInput,
 } from './deviceApi'
 import { DeviceFiltersPanel } from './DeviceFiltersPanel'
 import { DeviceAssignmentPanel } from './DeviceAssignmentPanel'
+import { DeviceHistoryPanel } from './DeviceHistoryPanel'
 import { isDeviceAssignable, mayAssignDevices } from './deviceAssignmentRules'
+import { deviceStatusLabel as statusLabel } from './deviceStatusLabels'
 import { EMPTY_DEVICE_FILTERS, hasActiveDeviceFilters, type DeviceAssignee, type DeviceFilters } from './deviceFilters'
 import './devices.css'
 import './devices-issue7.css'
@@ -28,14 +29,6 @@ const emptyForm: NewDeviceInput = {
   disk_space_gb: undefined, location: '', device_usage: '',
   purchased_at: '', start_of_use: '', maintenance_end: '',
   description: '', comments: '',
-}
-
-const deviceStatuses: Record<DeviceStatus, string> = {
-  available: 'Verfügbar',
-  assigned: 'Zugewiesen',
-  defective: 'Defekt',
-  maintenance: 'Wartung',
-  retired: 'Ausgemustert',
 }
 
 function deviceToForm(device: DeviceRecord): NewDeviceInput {
@@ -58,10 +51,6 @@ function deviceToForm(device: DeviceRecord): NewDeviceInput {
     description: device.description ?? '',
     comments: device.comments ?? '',
   }
-}
-
-function statusLabel(status: string | null): string {
-  return status ? (deviceStatuses[status as DeviceStatus] ?? status) : 'Nicht gesetzt'
 }
 
 function visibleValue(value: unknown): string {
@@ -424,6 +413,8 @@ export function DeviceManagementPage() {
         {canChangeStatus && <button type="button" className="devices-button"
           disabled={selected.status === 'assigned' || selected.status === 'retired'}
           onClick={() => openStatusEditor(selected)}>Status ändern</button>}
+        {/* PBI-12: Historie lädt beim Gerätewechsel und nach jedem Neuladen der Liste neu. */}
+        <DeviceHistoryPanel deviceId={selected.id} refreshKey={refresh} />
       </RevealPanel>}
 
       {assigningDevice && canAssign && <DeviceAssignmentPanel

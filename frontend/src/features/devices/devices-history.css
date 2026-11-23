@@ -1,0 +1,130 @@
+/* PBI-12 Geräte- und Zuweisungshistorie: nutzt ausschließlich Theme-Variablen,
+   damit Hell- und Dunkelmodus sowie die Akzentfarben automatisch greifen. */
+.device-history {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-ink);
+}
+.device-history h3 { margin: 0; font-size: 1.15rem; }
+.device-history h4 { margin: 0; font-size: 1rem; }
+.device-history :is(h3, h4):focus { outline: none; }
+.device-history :is(h3, h4):focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+
+.device-history-section { margin-top: 1.75rem; }
+.device-history-summary,
+.device-history-hint,
+.device-history-empty,
+.device-history-live {
+  margin: .45rem 0 0;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+.device-history-hint { font-weight: 600; }
+.device-history-live:empty { margin: 0; }
+.device-history-busy { opacity: .6; }
+
+.device-history-error {
+  margin: .9rem 0 0;
+  padding: 1rem;
+  border-radius: var(--radius-small);
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+.device-history-error p { margin: 0 0 .75rem; }
+p.device-history-error { margin-bottom: 0; font-weight: 600; }
+.device-history-more { margin-top: 1rem; }
+.device-history-more[aria-disabled='true'] { opacity: .6; cursor: progress; }
+
+/* Zuweisungstabelle: scrollt auf schmalen Bildschirmen horizontal (per Tastatur erreichbar). */
+.device-history-table-scroll {
+  width: 100%;
+  margin-top: .9rem;
+  overflow-x: auto;
+  border-radius: var(--radius-small);
+}
+.device-history-table-scroll:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+.device-history-table { width: 100%; min-width: 46rem; border-collapse: collapse; text-align: left; }
+.device-history-table th,
+.device-history-table td {
+  padding: .75rem .7rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+.device-history-table thead th {
+  background: var(--color-subtle);
+  color: var(--color-muted);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.device-history-table tbody th { font-weight: 600; overflow-wrap: anywhere; }
+.device-history-table td { overflow-wrap: anywhere; }
+.device-history-table td.device-history-cell-time { white-space: nowrap; overflow-wrap: normal; }
+.device-history-row--active > * { background: color-mix(in srgb, var(--color-success-bg) 70%, transparent); }
+.device-history-muted { display: block; margin-top: .2rem; color: var(--color-muted); font-size: .85rem; font-weight: 400; }
+.device-history-system { color: var(--color-muted); font-style: italic; }
+.device-history-pill {
+  display: inline-block;
+  padding: .25rem .55rem;
+  border-radius: .5rem;
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+/* Statusverlauf als Zeitleiste (neueste zuerst). */
+.device-history-timeline { margin: .9rem 0 0; padding: 0; list-style: none; }
+.device-history-timeline li {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(10rem, 13rem) minmax(0, 1fr);
+  gap: .3rem 1rem;
+  margin-left: .45rem;
+  padding: .7rem 0 .7rem 1.35rem;
+  border-left: 2px solid var(--color-border);
+}
+.device-history-timeline li::before {
+  content: '';
+  position: absolute;
+  top: 1rem;
+  left: -.5rem;
+  width: .75rem;
+  height: .75rem;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+.device-history-time { color: var(--color-muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.device-history-entry { min-width: 0; }
+.device-history-change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem;
+  margin: 0;
+  font-weight: 600;
+}
+.device-history-badge {
+  display: inline-block;
+  padding: .22rem .55rem;
+  border-radius: .5rem;
+  background: var(--color-badge-bg);
+  color: var(--color-badge-text);
+  font-size: .85rem;
+}
+.device-history-badge--old {
+  background: var(--color-subtle);
+  color: var(--color-muted);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+.device-history-arrow { color: var(--color-muted); }
+.device-history-actor { margin: .3rem 0 0; color: var(--color-muted); font-size: .88rem; }
+
+:root[data-density='compact'] .device-history-table :is(th, td) { padding-block: .42rem; font-size: .86rem; }
+:root[data-density='compact'] .device-history-timeline li { padding-block: .45rem; }
+
+@media (max-width: 40rem) {
+  .device-history-timeline li { grid-template-columns: minmax(0, 1fr); }
+  .device-history-more { width: 100%; }
+}
