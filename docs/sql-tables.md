@@ -205,6 +205,14 @@ profiles.id
 
 Ein Gerät darf gleichzeitig nur eine aktive Zuweisung besitzen.
 
+### Historie und Schutz (PBI-12)
+
+Zuweisungen bilden zusammen mit `device_status_history` die Gerätehistorie (**FA-14**). Damit historische Daten nach einer Rückgabe erhalten bleiben, gilt seit `supabase/proposals/20261123_pbi_12_device_history.sql`:
+
+- Browser-Rollen dürfen `assignments` nicht direkt schreiben; Zuweisung und Rücknahme laufen nur über `inventory_assign_device` und `inventory_return_device`.
+- Aktive Zuweisungen dürfen geändert werden (Rücknahme). Abgeschlossene Zuweisungen sind unveränderlich, Zuweisungen werden nie gelöscht (Trigger, auch für den Datenbankbesitzer). Einzige Ausnahme: `ON DELETE SET NULL` eines Benutzerbezugs, wenn das Profil gelöscht wird.
+- Ein Gerät mit Historie kann daher nicht gelöscht werden; es wird stattdessen ausgemustert (`retired`).
+
 ---
 
 ## 6. `device_status_history`
@@ -256,79 +264,99 @@ profiles.id
     └──► device_status_history.changed_by
 ```
 
+### Schutz und Anzeige (PBI-12)
+
+Einträge der Statushistorie entstehen ausschließlich in den Funktionen für Statuswechsel, Zuweisung und Rücknahme. Sie sind unveränderlich (Trigger gegen `UPDATE`, `DELETE` und `TRUNCATE`; Ausnahme nur `ON DELETE SET NULL` von `changed_by`).
+
+Die RPC `public.inventory_device_history(target_device)` liefert die Historie eines Gerätes:
+
+- Zuweisungen mit Mitarbeiter, Beginn, Ende sowie ausgebendem und zurücknehmendem Benutzer,
+- Statusänderungen mit altem und neuem Status, Zeitpunkt und Benutzer.
+
+Beide Listen sind neueste zuerst sortiert, auf je 200 Einträge begrenzt und enthalten vollständige Gesamtzahlen. Lesen dürfen Gerätemanager, Administratoren und SuperAdmins mit aktivem Konto, aktiver Sitzung sowie den Berechtigungen `devices:view_all` und `assignments:view_all`.
+
 ---
 
 ## 7. `audit_logs`
 
-Die Tabelle `audit_logs` protokolliert relevante Aktionen innerhalb des Device Inventory.
+Die Tabelle `audit_logs` protokolliert relevante Aktionen innerhalb des Device Inventory (PBI-15, **FA-20**, **FA-21**).
 
 ### Aufgabe
 
-Das Audit-Log dient der Nachvollziehbarkeit von Änderungen und sicherheitsrelevanten Aktionen innerhalb der Anwendung.
-
-Beispielsweise können folgende Aktionen protokolliert werden:
-
-- Gerät erstellt
-- Gerät bearbeitet
-- Gerätestatus geändert
-- Gerät zugewiesen
-- Gerät zurückgegeben
-- Benutzer erstellt
-- Benutzer deaktiviert
-- Benutzerrolle geändert
+Das Audit-Log macht Änderungen und sicherheitsrelevante Aktionen nachvollziehbar: **wer** (ausführender Benutzer), **was** (Aktion und betroffenes Objekt) und **wann** (Zeitpunkt). Administratoren sehen alle Einträge auf der Seite **Audit-Log**, die Einträge eines Gerätes zusätzlich in dessen Details unter **Änderungsprotokoll**.
 
 ### Wichtige Attribute
 
 | Attribut | Beschreibung |
 |---|---|
 | `id` | Eindeutige UUID des Audit-Eintrags |
-| `user_id` | Benutzer, der die Aktion durchgeführt hat (`profiles.id`); leer bei Änderungen ohne Benutzersitzung |
-| `action` | Art der durchgeführten Aktion |
-| `entity_type` | Art des betroffenen Objekts (`device` oder `user`) |
-| `entity_id` | ID des betroffenen Objekts |
-| `entity_title` | Lesbare Bezeichnung des Objekts zum Zeitpunkt der Aktion, z. B. Inventarnummer oder Name |
-| `details` | Zusätzliche Informationen zur Aktion als `jsonb` |
-| `created_at` | Zeitpunkt der Aktion |
+| `user_id` | Ausführender Benutzer (`profiles.id`); leer, wenn kein Benutzer ermittelt werden kann („System“) |
+| `action` | Art der durchgeführten Aktion (Pflichtfeld) |
+| `entity_type` | Art des betroffenen Objekts: `device`, `user` oder `role` (Pflichtfeld) |
+| `entity_id` | UUID des betroffenen Objekts (bei Rollen leer) |
+| `entity_title` | Lesbare Bezeichnung zum Zeitpunkt der Aktion, z. B. Inventarnummer, Name oder Rollenname |
+| `details` | Zusätzliche Informationen als `jsonb` |
+| `created_at` | Zeitpunkt der Aktion (Pflichtfeld) |
 
 ### Protokollierte Aktionen
 
-| Aktion | Auslöser | `entity_type` | Inhalt von `details` |
-|---|---|---|---|
-| `DEVICE_CREATED` | Gerät angelegt | `device` | Gerätedaten |
-| `DEVICE_UPDATED` | Gerätedaten geändert (ohne Status) | `device` | `changes` mit altem und neuem Wert je Feld |
-| `DEVICE_STATUS_CHANGED` | Gerätestatus geändert | `device` | `old_status`, `new_status` |
-| `DEVICE_DELETED` | Gerät gelöscht | `device` | Gerätedaten |
-| `DEVICE_ASSIGNED` | Zuweisung angelegt | `device` | `assignment_id`, `employee_id`, `assigned_at` |
-| `DEVICE_RETURNED` | Rückgabezeitpunkt gesetzt | `device` | `assignment_id`, `employee_id`, `returned_at` |
-| `ASSIGNMENT_UPDATED` | Sonstige Korrektur einer Zuweisung | `device` | `assignment_id`, `changes` |
-| `ASSIGNMENT_DELETED` | Zuweisung gelöscht | `device` | Zuweisungsdaten |
-| `USER_CREATED` | Benutzerprofil angelegt | `user` | Profildaten inkl. Rollenname |
-| `USER_UPDATED` | Profildaten geändert (ohne Rolle) | `user` | `changes` mit altem und neuem Wert je Feld |
-| `USER_ROLE_CHANGED` | Benutzerrolle geändert | `user` | `old_role`, `new_role` |
-| `USER_DELETED` | Benutzerprofil gelöscht | `user` | Profildaten |
+| Aktion | Anzeige | Auslöser | `entity_type` | Inhalt von `details` |
+|---|---|---|---|---|
+| `DEVICE_CREATED` | Gerät angelegt | Gerät angelegt | `device` | Gerätedaten |
+| `DEVICE_UPDATED` | Gerätedaten geändert | Stammdaten geändert (ohne Status) | `device` | `changes` mit altem und neuem Wert je Feld |
+| `DEVICE_STATUS_CHANGED` | Gerätestatus geändert | Status geändert (auch durch Zuweisung/Rücknahme) | `device` | `old_status`, `new_status` |
+| `DEVICE_DELETED` | Gerät gelöscht | Gerät gelöscht | `device` | Gerätedaten |
+| `DEVICE_ASSIGNED` | Gerät zugewiesen | Zuweisung angelegt | `device` | `assignment_id`, `employee_id`, `employee_name`, `assigned_at` |
+| `DEVICE_RETURNED` | Gerät zurückgenommen | Rückgabezeitpunkt gesetzt | `device` | `assignment_id`, `employee_id`, `employee_name`, `assigned_at`, `returned_at` |
+| `ASSIGNMENT_UPDATED` | Zuweisung korrigiert | sonstige Änderung einer Zuweisung | `device` | `assignment_id`, `changes` |
+| `ASSIGNMENT_DELETED` | Zuweisung gelöscht | Zuweisung gelöscht | `device` | Zuweisungsdaten |
+| `USER_CREATED` | Benutzer angelegt | Profil angelegt | `user` | `first_name`, `last_name`, `role`, `email` |
+| `USER_UPDATED` | Benutzerdaten geändert | Profildaten geändert | `user` | `changes` mit altem und neuem Wert je Feld |
+| `USER_ROLE_CHANGED` | Benutzerrolle geändert | Rolle geändert | `user` | `old_role`, `new_role` |
+| `USER_DISABLED` | Benutzer deaktiviert | `disabled_at` gesetzt | `user` | `disabled_at` |
+| `USER_ENABLED` | Benutzer reaktiviert | `disabled_at` entfernt | `user` | – |
+| `USER_DELETED` | Benutzer gelöscht | Profil gelöscht | `user` | Profildaten |
+| `ROLE_PERMISSIONS_CHANGED` | Rollenberechtigungen geändert | SuperAdmin ändert Rechte einer Rolle | `role` | `role`, `permissions` (neuer, sortierter Stand) |
 
-Zuweisungen und Rückgaben werden beim betroffenen Gerät protokolliert. Dadurch lassen sich alle Einträge eines Gerätes für die Gerätedetailseite über `entity_type = 'device'` und `entity_id` abfragen, während das globale Audit-Log alle Einträge anzeigt.
-
-Neue Spalten in `devices`, `assignments` oder `profiles` werden automatisch in `changes` erfasst. Eine spätere Deaktivierung von Benutzern erscheint dadurch ohne weitere Anpassung als `USER_UPDATED`.
+Zuweisungen und Rückgaben werden beim betroffenen Gerät protokolliert (`entity_type = 'device'`, `entity_id` = Geräte-ID). Dadurch zeigt die Gerätedetailseite alle Einträge eines Gerätes, während die Seite **Audit-Log** alle Einträge anzeigt. Der Mitarbeitername wird als Momentaufnahme gespeichert. Aktualisierungen ohne fachliche Änderung, z. B. nur `updated_at`, erzeugen keinen Eintrag. Neue Spalten in `devices`, `assignments` oder `profiles` erscheinen automatisch in `changes`.
 
 ### Umsetzung
 
-Die Einträge werden durch Datenbank-Trigger auf `devices`, `assignments` und `profiles` geschrieben (Migration `supabase/migrations/20261024120000_audit_logging.sql`). Dadurch wird jede Änderung unabhängig davon protokolliert, über welchen Weg sie in die Datenbank gelangt. Der Audit-Eintrag ist Teil derselben Transaktion: Wird eine Änderung zurückgerollt, entfällt auch der Eintrag (NFA-06).
+Die Einträge werden durch Datenbank-Trigger auf `devices`, `assignments`, `profiles` und `inventory_private.role_change_audit` geschrieben (Proposal `supabase/proposals/20261123_pbi_15_audit_log.sql`). Damit wird jede Änderung protokolliert, egal auf welchem Weg sie in die Datenbank gelangt: Browser, RPC oder Supabase-Dashboard. Der Audit-Eintrag ist Teil derselben Transaktion: Wird die Änderung zurückgerollt, entfällt auch der Eintrag (**NFA-06**).
 
-Der ausführende Benutzer wird über `auth.uid()` aus der Supabase-Sitzung ermittelt. Erfolgt eine Zuweisung oder Rückgabe ohne Benutzersitzung, wird `assigned_by` bzw. `returned_by` verwendet. Lässt sich kein Benutzer ermitteln, etwa bei Änderungen im Supabase-Dashboard, wird der Eintrag trotzdem mit leerem `user_id` geschrieben.
+Der ausführende Benutzer wird über `auth.uid()` aus der Supabase-Sitzung ermittelt. Ohne Benutzersitzung werden fachliche Rückfallwerte verwendet:
+
+- bei Zuweisungen `assigned_by`,
+- bei Rückgaben `returned_by`,
+- bei neuen Konten `app_metadata.created_by`, falls die Edge Function diesen Wert setzt.
+
+Es werden nur IDs mit vorhandenem Profil übernommen, damit der Fremdschlüssel nie die eigentliche Änderung abbricht. Lässt sich kein Benutzer ermitteln, etwa bei Änderungen im Supabase-Dashboard, wird der Eintrag trotzdem geschrieben, mit leerem `user_id` („System“).
+
+Die Funktionen liegen im nicht über die API erreichbaren Schema `inventory_private`. Das Proposal ersetzt die nie gemergten Migrationen `20261024120000_audit_logging.sql` und `20261024130000_audit_log_read_access.sql` und entfernt deren Objekte, falls sie bereits ausgeführt wurden.
+
+### Manipulationsschutz
+
+- Browser-Rollen (`anon`, `authenticated`) haben keinerlei direkte Rechte auf `audit_logs`. Der Service-Key kann nur lesen.
+- Ein Trigger verhindert `UPDATE`, `DELETE` und `TRUNCATE`, auch für den Datenbankbesitzer. Einzige Ausnahme ist `ON DELETE SET NULL` von `user_id`, wenn das Profil des ausführenden Benutzers gelöscht wird.
 
 ### Berechtigungen
 
 | Rolle | Lesen | Anlegen, Ändern, Löschen |
 |---|---|---|
-| Administrator | alle Einträge | nein |
+| SuperAdmin | alle Einträge (mit `audit:view`) | nein |
+| Administrator | alle Einträge (mit `audit:view`) | nein |
 | Gerätemanager | nein | nein |
 | Mitarbeiter | nein | nein |
 | nicht angemeldet | nein | nein |
 
-Einträge entstehen ausschließlich über die Trigger. Der Lesezugriff wird per Row Level Security geprüft (Migration `supabase/migrations/20261024130000_audit_log_read_access.sql`) und richtet sich nach der aktuellen Rolle in `profiles`. Wird einem Benutzer die Administratorrolle entzogen, verliert er den Zugriff sofort.
+Gelesen wird ausschließlich über die RPC `public.inventory_audit_log_list(target_page, target_action, target_entity_type, target_entity_id, search_text, created_from, created_to)`. Sie prüft bei jedem Aufruf:
 
-Die Prüfung greift bei allen Anfragen mit Benutzersitzung. Ein Backend, das mit dem Supabase-Service-Key zugreift, umgeht Row Level Security und muss die Administratorrolle selbst prüfen.
+- angemeldeter Benutzer mit aktivem Konto,
+- aktive Serversitzung,
+- Rolle `admin` oder `super_admin`,
+- dynamische Berechtigung `audit:view`.
+
+Wird die Rolle oder die Berechtigung entzogen, das Konto deaktiviert oder die Sitzung beendet, entfällt der Zugriff sofort. Die RPC filtert nach Aktion, Objekttyp, Objekt, Zeitraum und Suchbegriff und liefert Seiten zu je 25 Einträgen (neueste zuerst) mit Gesamtzahl.
 
 ### Beispiel
 
@@ -338,13 +366,14 @@ Die Prüfung greift bei allen Anfragen mit Benutzersitzung. Ein Backend, das mit
   "action": "DEVICE_ASSIGNED",
   "entity_type": "device",
   "entity_id": "…",
-  "entity_title": "NB-0001",
+  "entity_title": "IT-0003",
   "details": {
     "assignment_id": "…",
     "employee_id": "…",
-    "assigned_at": "2026-10-24T12:00:00+00:00"
+    "employee_name": "Erika Muster",
+    "assigned_at": "2026-11-23T12:00:00+00:00"
   },
-  "created_at": "2026-10-24T12:00:00+00:00"
+  "created_at": "2026-11-23T12:00:00+00:00"
 }
 ```
 
