@@ -2,8 +2,7 @@ import { useEffect } from 'react'
 import { AppLayout } from './components/layout/AppLayout'
 import { PageContainer } from './components/ui/PageContainer'
 import { PageHeader } from './components/ui/PageHeader'
-import { navigationEntries } from './config/navigation'
-import { hasPermission } from './config/permissions'
+import { canOpenNavigationEntry, navigationEntries } from './config/navigation'
 import { useAppNavigation } from './hooks/useAppNavigation'
 import { useAuthSession } from './hooks/useAuthSession'
 import { AccountAccessPage } from './pages/AccountAccessPage'
@@ -16,6 +15,7 @@ import { DeviceManagementPage } from './features/devices/DeviceManagementPage'
 import { AssignmentManagementPage } from './features/assignments/AssignmentManagementPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
 import { SettingsPage } from './features/settings/SettingsPage'
+import { AuditLogPage } from './features/audit/AuditLogPage'
 
 export default function App() {
   const {
@@ -30,8 +30,9 @@ export default function App() {
 
   const { currentPath, navigate } = useAppNavigation()
   const currentPage = navigationEntries.find(entry => entry.path === currentPath)
+  // Gleiche Regel wie im Menü: Berechtigung und ggf. zulässige Rolle (z. B. Audit-Log).
   const hasAccess = currentPage
-    ? hasPermission(role, currentPage.requiredPermission, permissions)
+    ? canOpenNavigationEntry(currentPage, role, permissions)
     : false
   const isChecking = isLoading || (session !== null && isRoleLoading)
 
@@ -84,6 +85,8 @@ export default function App() {
       <DeviceManagementPage />
     ) : currentPath === '/zuweisungen' ? (
       <AssignmentManagementPage onNavigateToDevices={(event) => navigate('/geraete', event)} />
+    ) : currentPath === '/audit-log' ? (
+      <AuditLogPage />
     ) : (
       <PlaceholderPage page={currentPage} />
     )}

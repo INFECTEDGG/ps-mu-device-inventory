@@ -1,7 +1,7 @@
 
 import { forwardRef, type MouseEvent } from 'react'
-import { navigationEntries } from '../../config/navigation'
-import { hasPermission, type Permission, type Role } from '../../config/permissions'
+import { canOpenNavigationEntry, navigationEntries } from '../../config/navigation'
+import type { Permission, Role } from '../../config/permissions'
 import { NavigationItem } from '../navigation/NavigationItem'
 import { AppIcon } from '../ui/AppIcon'
 
@@ -31,10 +31,10 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
     },
     ref,
   ) {
-    // Nur Menüpunkte anzeigen, für die der Benutzer
-    // die erforderliche Berechtigung besitzt.
+    // Nur Menüpunkte anzeigen, für die der Benutzer die erforderliche
+    // Berechtigung (und ggf. eine zulässige Rolle) besitzt.
     const visibleEntries = navigationEntries.filter((entry) =>
-      hasPermission(role, entry.requiredPermission, permissions)
+      canOpenNavigationEntry(entry, role, permissions)
     )
 
     return (
