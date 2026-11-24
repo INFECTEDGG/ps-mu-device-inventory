@@ -1,7 +1,7 @@
 -- Sicherheitskorrektur zu 20261028102000_superadmin_role_permissions.sql
 --
 -- VORSCHLAG: nach Review und Backup manuell im Supabase SQL Editor ausführen
--- (vor oder nach den PBI-12/PBI-15-Proposals; unabhängig davon).
+-- (vor oder nach dem PBI-15-Proposal; unabhängig davon).
 --
 -- Fehler: public.inventory_admin_assign_role deklariert eine Variable mit dem
 -- Namen current_role. In SQL-Ausdrücken ist CURRENT_ROLE jedoch ein Schlüsselwort

@@ -37,9 +37,7 @@ const BASE_SCRIPTS = [
 ]
 
 export const AUDIT_PROPOSAL = 'proposals/20261123_pbi_15_audit_log.sql'
-export const HISTORY_PROPOSAL = 'proposals/20261123_pbi_12_device_history.sql'
 export const AUDIT_CHECK = 'checks/pbi-15-audit-log-preflight.sql'
-export const HISTORY_CHECK = 'checks/pbi-12-device-history-preflight.sql'
 
 // Nie gemergte Audit-Migrationen aus dem Branch Guillermo (Stand vor PBI-15).
 export const LEGACY_AUDIT_SCRIPTS = [
@@ -76,13 +74,11 @@ export const errorCodes = Object.freeze({
  * @param {object} [options]
  * @param {boolean} [options.legacyAudit=false] alte Audit-Migrationen vor allen anderen Skripten einspielen
  * @param {boolean} [options.auditLog=true] Proposal PBI-15 (Audit-Log) installieren
- * @param {boolean} [options.deviceHistory=true] Proposal PBI-12 (Gerätehistorie) installieren
  * @param {boolean} [options.sessions=true] für alle Testbenutzer eine aktive Serversitzung starten
  */
 export async function buildInventoryDatabase({
   legacyAudit = false,
   auditLog = true,
-  deviceHistory = true,
   sessions = true,
 } = {}) {
   const db = new PGlite()
@@ -116,7 +112,6 @@ export async function buildInventoryDatabase({
     }
 
     if (auditLog) await db.exec(await readSql(AUDIT_PROPOSAL))
-    if (deviceHistory) await db.exec(await readSql(HISTORY_PROPOSAL))
 
     if (sessions) {
       for (const account of Object.values(users)) {

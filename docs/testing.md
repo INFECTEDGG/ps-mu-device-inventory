@@ -38,15 +38,14 @@ Ein Pull Request mit fehlgeschlagenen Tests sollte erst nach der Fehlerbehebung 
 | **FA-10** | Nach der Zuweisung hat das Gerät den Status `assigned` | `assignments.test.mjs` |
 | **FA-11**, **FA-12** | Die Rücknahme speichert Zeitpunkt und ausführenden Benutzer und beendet die Zuweisung | `assignments.test.mjs` |
 | **FA-13** | Nach der Rücknahme ist das Gerät wieder `available` und erneut zuweisbar | `assignments.test.mjs` |
-| **FA-14** | Jede Statusänderung erscheint in der Statushistorie; die Gerätehistorie zeigt Zuweisungen (Mitarbeiter, Beginn, Ende) und Statusänderungen; historische Daten bleiben nach der Rückgabe erhalten und sind unveränderlich | `assignments.test.mjs`, `deviceHistory.test.mjs` |
+| **FA-14** | Jede Statusänderung erscheint in der Statushistorie; abgeschlossene Zuweisungen bleiben nach der Rückgabe erhalten | `assignments.test.mjs` |
 | **FA-20** | Alle relevanten Aktionen werden mit Benutzer, Aktion, Objekt und Zeitpunkt protokolliert, auch ohne Benutzersitzung („System“) | `auditLog.test.mjs` |
 | **FA-21** | Nur aktive Administratoren und SuperAdmins mit `audit:view` lesen das Audit-Log; Filter, Suche und Seiten | `auditLog.test.mjs` |
-| **NFA-02** | Gerätehistorie nur für Gerätemanager, Administratoren und SuperAdmins mit `devices:view_all` und `assignments:view_all` | `deviceHistory.test.mjs` |
 | **NFA-05** | Pro Gerät höchstens eine aktive Zuweisung; mehrere Geräte pro Mitarbeiter möglich | `assignments.test.mjs` |
 | **NFA-06** | Eine fehlgeschlagene Zuweisung hinterlässt keine Teildaten; bei einem Rollback entfällt auch der Audit-Eintrag | `assignments.test.mjs`, `auditLog.test.mjs` |
 | Datenintegrität (Project Log vom 16.10.2026) | Ein Rückgabezeitpunkt liegt nie vor dem Zuweisungszeitpunkt | `assignments.test.mjs` |
-| Manipulationsschutz | Audit-Einträge, abgeschlossene Zuweisungen und Statushistorie können weder geändert noch gelöscht werden, auch nicht vom Datenbankbesitzer | `auditLog.test.mjs`, `deviceHistory.test.mjs` |
-| Installation | Die Proposals verweigern eine zweite Ausführung und installieren sich auch auf einer Datenbank mit den alten Audit-Migrationen vom 24.10.2026 | `auditLog.test.mjs`, `deviceHistory.test.mjs` |
+| Manipulationsschutz | Audit-Einträge können weder geändert noch gelöscht werden, auch nicht vom Datenbankbesitzer | `auditLog.test.mjs` |
+| Installation | Das Audit-Log-Proposal verweigert eine zweite Ausführung und installiert sich auch auf einer Datenbank mit den alten Audit-Migrationen vom 24.10.2026 | `auditLog.test.mjs` |
 
 Die übrigen Testdateien (`authReadPolicies`, `employeeProfiles`, `serverSessionInactivity`, `userManagement`, `hiddenDeactivatedUsers`, `listDisabledUsers`, `superAdminPermissions`) prüfen Anmeldung, Sitzungen, Benutzer- und Rollenverwaltung.
 
@@ -61,7 +60,7 @@ Die übrigen Testdateien (`authReadPolicies`, `employeeProfiles`, `serverSession
 
 ## 6. Neue Datenbanktests schreiben
 
-Neue Testdateien werden als `supabase/tests/<thema>.test.mjs` angelegt und automatisch gefunden. Tests für Geräte, Zuweisungen, Historie und Audit-Log verwenden das gemeinsame Test-Setup `supabase/tests/support/inventoryStack.mjs`. Es baut die Schema-Nachbildung `tests/fixtures/inventory-schema.sql` auf und spielt danach alle Migrationen und Proposals in der Produktionsreihenfolge ein.
+Neue Testdateien werden als `supabase/tests/<thema>.test.mjs` angelegt und automatisch gefunden. Tests für Geräte, Zuweisungen und Audit-Log verwenden das gemeinsame Test-Setup `supabase/tests/support/inventoryStack.mjs`. Es baut die Schema-Nachbildung `tests/fixtures/inventory-schema.sql` auf und spielt danach alle Migrationen und Proposals in der Produktionsreihenfolge ein.
 
 | Hilfsfunktion | Zweck |
 |---|---|

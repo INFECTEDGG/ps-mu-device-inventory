@@ -309,7 +309,7 @@ async function requireSession() {
 export const auditLogApi = {
   /**
    * Lädt eine Seite des Audit-Logs. Eingaben werden vor dem Netzwerkaufruf geprüft;
-   * mit `entity` wird auf ein einzelnes Objekt eingeschränkt (z. B. Gerätedetails).
+   * mit `entity` wird auf ein einzelnes Objekt eingeschränkt (z. B. ein einzelnes Gerät).
    */
   async list(filters: AuditLogFilters, page: number, entity?: AuditEntityScope): Promise<AuditLogPage> {
     const args = buildAuditRpcArgs(filters, page, entity)

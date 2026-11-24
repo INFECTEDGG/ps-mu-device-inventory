@@ -173,9 +173,8 @@ test('protokolliert Zuweisung und Rücknahme beim Gerät mit Mitarbeiternamen (F
   assert.equal((await readAudit(db, { action: 'ASSIGNMENT_UPDATED' })).length, 0)
 })
 
-test('protokolliert Korrektur und Löschung einer Zuweisung (Installation ohne PBI-12)', async (t) => {
-  // Mit PBI-12 sind Löschungen gesperrt; der Audit-Trigger funktioniert auch ohne.
-  const db = await freshDatabase(t, { deviceHistory: false })
+test('protokolliert Korrektur und Löschung einer Zuweisung', async (t) => {
+  const db = await createDatabase(t)
   const deviceId = await createDevice(db, { asset_tag: 'IT-0250' })
   const assignmentId = await assign(db, deviceId)
 
@@ -667,7 +666,7 @@ test('Preflight verweigert eine zweite Ausführung ohne Änderungen', async (t) 
 })
 
 test('Preflight prüft Altdaten, wandelt Text-Details um und die Prüfabfragen laufen nur lesend', async (t) => {
-  const db = await freshDatabase(t, { auditLog: false, deviceHistory: false, sessions: false })
+  const db = await freshDatabase(t, { auditLog: false, sessions: false })
   const proposal = await readSql(AUDIT_PROPOSAL)
   const check = await readSql(AUDIT_CHECK)
   const readOnly = (sql) => db.exec(`begin transaction read only;\n${sql}\nrollback;`)

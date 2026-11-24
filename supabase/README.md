@@ -9,7 +9,7 @@ Dieses Verzeichnis enthält die SQL-Skripte für die Supabase-Datenbank sowie au
 - `checks/`: rein **lesende** Prüfabfragen (Preflight), die vor dem zugehörigen Proposal ausgeführt werden
 - `functions/`: Supabase Edge Functions (z. B. `admin-users`)
 - `tests/`: Tests mit [PGlite](https://pglite.dev), einer in Node.js laufenden PostgreSQL-Instanz; Docker oder eine lokale PostgreSQL-Installation sind nicht nötig
-- `tests/support/inventoryStack.mjs`: gemeinsames Test-Setup für Geräte, Zuweisungen, Historie und Audit-Log
+- `tests/support/inventoryStack.mjs`: gemeinsames Test-Setup für Geräte, Zuweisungen und Audit-Log
 - `tests/fixtures/inventory-schema.sql`: Nachbildung des in Supabase angelegten Schemas als Testgrundlage
 
 ## Proposal einspielen
@@ -25,9 +25,8 @@ Dieses Verzeichnis enthält die SQL-Skripte für die Supabase-Datenbank sowie au
 |---|---|---|---|
 | 1 | – | `20261123_fix_admin_assign_role_guard.sql` | Sicherheitskorrektur der Rollenzuweisung (Schutz von SuperAdmin und Administratoren) |
 | 2 | `pbi-15-audit-log-preflight.sql` | `20261123_pbi_15_audit_log.sql` | Audit-Log (PBI-15, FA-20/FA-21), ersetzt die alten Migrationen vom 24.10.2026 |
-| 3 | `pbi-12-device-history-preflight.sql` | `20261123_pbi_12_device_history.sql` | Geräte- und Zuweisungshistorie (PBI-12, FA-14) |
 
-Die drei Proposals sind voneinander unabhängig; die Reihenfolge ist eine Empfehlung. Voraussetzung sind die bereits installierten Proposals für Benutzerverwaltung, SuperAdmin-Berechtigungen, Gerätestatus sowie Zuweisung und Rücknahme (Issues #8, #10, #11). Details stehen in [`docs/pbi-15-audit-log.md`](../docs/pbi-15-audit-log.md) und [`docs/pbi-12-device-history.md`](../docs/pbi-12-device-history.md).
+Die beiden Proposals sind voneinander unabhängig; die Reihenfolge ist eine Empfehlung. Voraussetzung sind die bereits installierten Proposals für Benutzerverwaltung, SuperAdmin-Berechtigungen, Gerätestatus sowie Zuweisung und Rücknahme (Issues #8, #10, #11). Details zum Audit-Log stehen in [`docs/pbi-15-audit-log.md`](../docs/pbi-15-audit-log.md).
 
 ## Tests ausführen
 
@@ -41,6 +40,6 @@ npm test
 
 Die Tests laufen zusätzlich bei jedem Push und Pull Request über GitHub Actions. Teststrategie und Hinweise zum Schreiben neuer Tests stehen in [`docs/testing.md`](../docs/testing.md).
 
-## Audit-Logging und Historie
+## Audit-Logging
 
-Aufbau der Tabelle `audit_logs`, protokollierte Aktionen, Manipulationsschutz und Berechtigungen sind in [`docs/sql-tables.md`](../docs/sql-tables.md#7-audit_logs) beschrieben, der Schutz der Gerätehistorie in den Abschnitten zu `assignments` und `device_status_history`.
+Aufbau der Tabelle `audit_logs`, protokollierte Aktionen, Manipulationsschutz und Berechtigungen sind in [`docs/sql-tables.md`](../docs/sql-tables.md#7-audit_logs) beschrieben.

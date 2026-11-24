@@ -5,7 +5,6 @@
 --   1. supabase/checks/pbi-15-audit-log-preflight.sql lesend ausführen und prüfen.
 --   2. Diese Datei VOLLSTÄNDIG ausführen (eine Transaktion; bei einem Fehler wird
 --      nichts geändert).
---   3. Danach supabase/proposals/20261123_pbi_12_device_history.sql.
 -- Voraussetzungen: Server-Sitzung, Benutzerverwaltung, SuperAdmin-Berechtigungen,
 -- Gerätestatus sowie Zuweisung/Rücknahme (Issues #8, #10, #11) sind installiert.
 --
@@ -454,8 +453,8 @@ BEGIN
 END;
 $function$;
 
--- Zuweisungen werden beim Gerät protokolliert (entity_type 'device'), damit die
--- Gerätedetailseite alle Einträge eines Gerätes über entity_id findet.
+-- Zuweisungen werden beim Gerät protokolliert (entity_type 'device'), damit sich
+-- alle Einträge eines Gerätes über entity_id gemeinsam abrufen lassen.
 -- DEVICE_ASSIGNED, DEVICE_RETURNED, ASSIGNMENT_UPDATED, ASSIGNMENT_DELETED
 CREATE FUNCTION inventory_private.audit_assignment_change()
 RETURNS trigger

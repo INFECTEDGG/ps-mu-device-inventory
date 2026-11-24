@@ -1,6 +1,6 @@
 import type { DeviceStatus } from './deviceApi'
 
-/** Deutsche Anzeigenamen der Gerätestatus; gemeinsam genutzt von Geräteverwaltung, Historie und Audit-Log. */
+/** Deutsche Anzeigenamen der Gerätestatus; genutzt vom Audit-Log (auditLogFormat). */
 export const deviceStatusLabels: Record<DeviceStatus, string> = {
   available: 'Verfügbar',
   assigned: 'Zugewiesen',

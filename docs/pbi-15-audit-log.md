@@ -19,7 +19,6 @@
 | Aktion | SuperAdmin | Admin | Gerätemanager | Mitarbeiter |
 |---|---|---|---|---|
 | Seite **Audit-Log** und Menüpunkt | Ja (mit `audit:view`) | Ja (mit `audit:view`) | Nein | Nein |
-| **Änderungsprotokoll** in den Gerätedetails | Ja (mit `audit:view`) | Ja (mit `audit:view`) | Nein | Nein |
 | Audit-Einträge ändern oder löschen | Nein | Nein | Nein | Nein |
 
 Entzieht der SuperAdmin der Rolle Administrator `audit:view`, entfällt der Zugriff sofort. Weist er `audit:view` einer anderen Rolle zu, bleibt der Zugriff trotzdem verweigert: Der Server prüft zusätzlich die Rolle, und das Menü blendet den Eintrag aus.
@@ -64,9 +63,8 @@ Entzieht der SuperAdmin der Rolle Administrator `audit:view`, entfällt der Zugr
 2. Gerät einem Mitarbeiter zuweisen und unter **Zuweisungen** zurücknehmen.
 3. **Audit-Log** öffnen. Die Einträge „Gerät angelegt“, „Gerätedaten geändert“ (alter → neuer Wert), „Gerätestatus geändert“, „Gerät zugewiesen“ und „Gerät zurückgenommen“ erscheinen mit Benutzer und Zeitpunkt.
 4. Filter testen: Aktion „Gerät zugewiesen“, Objekttyp „Gerät“, Suche nach der Inventarnummer, Zeitraum „heute“.
-5. In den Gerätedetails erscheint unter **Änderungsprotokoll** nur die Historie dieses Gerätes.
-6. Als Gerätemanager und als Mitarbeiter anmelden: kein Menüpunkt, `/audit-log` zeigt „Zugriff verweigert“.
-7. Im SQL Editor (nur lesen):
+5. Als Gerätemanager und als Mitarbeiter anmelden: kein Menüpunkt, `/audit-log` zeigt „Zugriff verweigert“.
+6. Im SQL Editor (nur lesen):
 
 ```sql
 SELECT l.created_at, l.action, l.entity_title, p.first_name, p.last_name, l.details
@@ -74,7 +72,7 @@ FROM public.audit_logs l LEFT JOIN public.profiles p ON p.id = l.user_id
 ORDER BY l.created_at DESC LIMIT 20;
 ```
 
-8. Manipulationsschutz prüfen. Diese Anweisung muss mit „Audit-Einträge sind unveränderlich.“ scheitern:
+7. Manipulationsschutz prüfen. Diese Anweisung muss mit „Audit-Einträge sind unveränderlich.“ scheitern:
 
 ```sql
 BEGIN; DELETE FROM public.audit_logs WHERE true; ROLLBACK;

@@ -13,7 +13,7 @@ interface AuditLogEntriesProps {
   entries: readonly AuditLogEntry[]
   /** Zugänglicher Name der scrollbaren Tabelle (Standard: „Audit-Einträge“). */
   label?: string
-  /** Blendet die Spalte „Objekt“ aus (Ansicht innerhalb der Gerätedetails). */
+  /** Blendet die Spalte „Objekt“ aus (z. B. für eine Ansicht zu einem einzelnen Objekt). */
   compact?: boolean
 }
 
@@ -21,7 +21,7 @@ function validDateTime(iso: string): string | undefined {
   return Number.isNaN(new Date(iso).getTime()) ? undefined : iso
 }
 
-/** Wiederverwendbare Tabelle der Audit-Einträge (globales Audit-Log und Gerätedetails). */
+/** Wiederverwendbare Tabelle der Audit-Einträge (z. B. globales Audit-Log). */
 export function AuditLogEntries({ entries, label = 'Audit-Einträge', compact = false }: AuditLogEntriesProps) {
   return (
     <div className="audit-table-scroll" role="region" aria-label={label} tabIndex={0}>
