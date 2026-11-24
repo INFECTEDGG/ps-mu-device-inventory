@@ -34,7 +34,7 @@ Menü und Seite folgen der Berechtigungsmatrix aus der Datenbank nur, wenn in Ve
 **Datenbank**
 
 - `supabase/proposals/20261123_pbi_15_audit_log.sql`:
-  - Spalten `user_id` und `entity_id`, Pflichtfelder und Indizes für `audit_logs`
+  - fehlende Spalten (`entity_title`, bei Bedarf `user_id` und `entity_id`), genau ein Fremdschlüssel `user_id` → `profiles` mit `ON DELETE SET NULL`, Pflichtfelder und Indizes für `audit_logs`
   - Trigger und Manipulationsschutz
   - RPC `inventory_audit_log_list`
 - `supabase/checks/pbi-15-audit-log-preflight.sql`: lesende Prüfung vor der Installation
@@ -157,6 +157,7 @@ Wird die Berechtigung entzogen, das Konto deaktiviert oder die Sitzung beendet, 
 1. **Noch nicht nach `main` pushen:** `main` wird automatisch auf Vercel veröffentlicht.
 2. Backup von `audit_logs`, `devices`, `assignments`, `profiles` sowie der Funktionen und Policies erstellen.
 3. `supabase/checks/pbi-15-audit-log-preflight.sql` im Supabase SQL Editor **lesend** ausführen. Zu prüfen:
+   - alle Zeilen `required_column` = `present` (Spalten, die das Proposal voraussetzt)
    - Spalten und Typen von `audit_logs`, insbesondere eine schon vorhandene Benutzerspalte
    - Einträge ohne `action` oder `entity_type`
    - vorhandene Trigger und Policies

@@ -4,8 +4,10 @@
 --
 -- Vor der Installation erwartet:
 --   prerequisite.*            = present (Sitzung, RBAC, inventory_private)
---   audit_column.*            = id, action, entity_type, entity_title, details, created_at
---                               (user_id/entity_id fehlen oder sind uuid)
+--   required_column.*         = present (alle Spalten, die das Proposal voraussetzt)
+--   audit_column.*            = mindestens id, action, entity_type, details, created_at
+--                               (user_id/entity_id fehlen oder sind uuid; entity_title
+--                               fehlt oder ist text – fehlende Spalten ergänzt das Proposal)
 --   data.null_required_fields = 0
 --   data.orphan_user_ids      = 0 (oder Spalte user_id fehlt)
 --   installed.audit_log_list  = missing
@@ -136,6 +138,25 @@ select 'legacy', 'policy.audit_logs_admin_read',
     select 1 from pg_catalog.pg_policies p
     where p.schemaname = 'public' and p.tablename = 'audit_logs' and p.policyname = 'audit_logs_admin_read'
   ) then 'present' else 'missing' end
+union all
+-- Alle Spalten, die das Proposal voraussetzt (Preflight im Proposal bricht sonst ab).
+select 'required_column', rc.tbl || '.' || rc.col,
+  case when exists (
+    select 1 from information_schema.columns c
+    where c.table_schema = 'public' and c.table_name = rc.tbl and c.column_name = rc.col
+  ) then 'present' else 'missing' end
+from (values
+  ('audit_logs', 'id'), ('audit_logs', 'action'), ('audit_logs', 'entity_type'),
+  ('audit_logs', 'details'), ('audit_logs', 'created_at'),
+  ('devices', 'id'), ('devices', 'status'), ('devices', 'asset_tag'),
+  ('devices', 'created_at'), ('devices', 'updated_at'),
+  ('assignments', 'id'), ('assignments', 'device_id'), ('assignments', 'employee_id'),
+  ('assignments', 'assigned_by'), ('assignments', 'assigned_at'),
+  ('assignments', 'returned_at'), ('assignments', 'returned_by'),
+  ('profiles', 'id'), ('profiles', 'role_id'), ('profiles', 'first_name'),
+  ('profiles', 'last_name'), ('profiles', 'disabled_at'), ('profiles', 'updated_at'),
+  ('roles', 'id'), ('roles', 'name')
+) rc(tbl, col)
 union all
 -- Datenlage; über to_jsonb, damit die Abfrage auch ohne user_id/entity_id läuft.
 select 'data', 'row_count', pg_catalog.count(*)::text

@@ -13,7 +13,8 @@
 --   Angenommen wird: Spalten mit ausführendem Benutzer (created_by, assigned_by,
 --   returned_by, changed_by) verwenden ON DELETE SET NULL, Geräte- und
 --   Mitarbeiterbezüge (device_id, employee_id) NO ACTION.
--- * audit_logs hat die ursprüngliche Produktionsform OHNE user_id und entity_id,
+-- * audit_logs hat die Produktionsform laut Preflight vom 24.11.2026 (mit user_id,
+--   entity_id und dem Fremdschlüssel audit_logs_user_fk, aber OHNE entity_title),
 --   damit die ALTER-Anweisungen des Audit-Proposals tatsächlich ausgeführt werden.
 -- * Supabase Auth wird nur nachgestellt: auth.jwt() und auth.uid() lesen die
 --   Claims aus request.jwt.claims (wie PostgREST), auth.users und auth.sessions
@@ -132,13 +133,17 @@ create table public.device_status_history (
   changed_at timestamptz not null default now()
 );
 
+-- Form wie in Produktion (Preflight-Ergebnis vom 24.11.2026): user_id und entity_id
+-- vorhanden, Fremdschlüssel audit_logs_user_fk ohne Löschregel, KEIN entity_title.
 create table public.audit_logs (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid,
   action text,
   entity_type text,
-  entity_title text,
+  entity_id uuid,
   details jsonb,
-  created_at timestamptz default now()
+  created_at timestamptz not null default now(),
+  constraint audit_logs_user_fk foreign key (user_id) references public.profiles (id)
 );
 
 -- 4. Standardrechte, wie Supabase sie für das Schema public vergibt

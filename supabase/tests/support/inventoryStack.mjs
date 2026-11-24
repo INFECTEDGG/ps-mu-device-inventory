@@ -95,6 +95,10 @@ export async function buildInventoryDatabase({
     }
 
     if (legacyAudit) {
+      // Die alten Migrationen setzen entity_title voraus, das die Produktionstabelle nie hatte.
+      // In Produktion liefen sie nie (Preflight 24.11.2026: legacy = missing); geprüft wird hier
+      // nur, dass das Proposal ihre Objekte entfernt, falls sie doch installiert wurden.
+      await db.exec('alter table public.audit_logs add column if not exists entity_title text')
       for (const script of LEGACY_AUDIT_SCRIPTS) await db.exec(await readSql(script))
     }
 

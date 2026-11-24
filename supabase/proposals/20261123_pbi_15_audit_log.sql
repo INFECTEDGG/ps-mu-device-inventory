@@ -67,7 +67,8 @@ BEGIN
         MESSAGE = pg_catalog.format('PBI-15: die Tabelle public.%s fehlt.', needed);
     END IF;
   END LOOP;
-  FOREACH needed IN ARRAY ARRAY['id', 'action', 'entity_type', 'entity_title', 'details', 'created_at'] LOOP
+  -- entity_title, user_id und entity_id fehlen in manchen Installationen; sie werden unten ergänzt.
+  FOREACH needed IN ARRAY ARRAY['id', 'action', 'entity_type', 'details', 'created_at'] LOOP
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns
       WHERE table_schema = 'public' AND table_name = 'audit_logs' AND column_name = needed) THEN
       RAISE EXCEPTION USING ERRCODE = '55000',
@@ -85,6 +86,15 @@ BEGIN
         HINT = 'Spaltentyp und vorhandene Daten zuerst im Team klären.';
     END IF;
   END LOOP;
+  SELECT a.atttypid::regtype INTO column_type
+  FROM pg_catalog.pg_attribute a
+  WHERE a.attrelid = 'public.audit_logs'::regclass AND a.attname = 'entity_title'
+    AND a.attnum > 0 AND NOT a.attisdropped;
+  IF FOUND AND column_type NOT IN ('text'::regtype, 'character varying'::regtype) THEN
+    RAISE EXCEPTION USING ERRCODE = '55000',
+      MESSAGE = pg_catalog.format('PBI-15: audit_logs.entity_title existiert bereits, ist aber kein Text (%s).', column_type),
+      HINT = 'Spaltentyp und vorhandene Daten zuerst im Team klären.';
+  END IF;
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'audit_logs' AND column_name = 'id'
       AND (column_default IS NOT NULL OR is_identity = 'YES')) THEN
@@ -203,7 +213,8 @@ $preflight$;
 -- ---------------------------------------------------------------------------
 ALTER TABLE public.audit_logs
   ADD COLUMN IF NOT EXISTS user_id uuid REFERENCES public.profiles (id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS entity_id uuid;
+  ADD COLUMN IF NOT EXISTS entity_id uuid,
+  ADD COLUMN IF NOT EXISTS entity_title text;
 
 -- Bestand vereinheitlichen: genau ein Fremdschlüssel user_id -> profiles.id mit
 -- ON DELETE SET NULL. Andere Löschregeln würden das Löschen eines Profils

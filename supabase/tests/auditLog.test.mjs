@@ -676,6 +676,34 @@ test('installiert sich auf einer Datenbank mit den alten Audit-Migrationen und e
   assert.ok((await listAudit(db, users.admin)).total >= 2)
 })
 
+test('installiert sich auf der Produktionsform: ergänzt entity_title und ersetzt den Fremdschlüssel', async (t) => {
+  // Ausgangslage laut Preflight in Produktion: user_id/entity_id vorhanden, Fremdschlüssel
+  // audit_logs_user_fk ohne Löschregel, kein entity_title (siehe fixtures/inventory-schema.sql).
+  const db = await createDatabase(t)
+
+  const { rows: columns } = await db.query(
+    "select column_name, data_type from information_schema.columns where table_schema = 'public' and table_name = 'audit_logs' order by column_name",
+  )
+  assert.deepEqual(Object.fromEntries(columns.map((c) => [c.column_name, c.data_type])), {
+    action: 'text', created_at: 'timestamp with time zone', details: 'jsonb', entity_id: 'uuid',
+    entity_title: 'text', entity_type: 'text', id: 'uuid', user_id: 'uuid',
+  })
+
+  const { rows: keys } = await db.query(
+    "select conname, confdeltype from pg_constraint where conrelid = 'public.audit_logs'::regclass and contype = 'f'",
+  )
+  assert.deepEqual(keys, [{ conname: 'audit_logs_user_id_fkey', confdeltype: 'n' }], 'genau ein Fremdschlüssel mit ON DELETE SET NULL')
+
+  const { rows: checkRows } = await db.query(await readSql(AUDIT_CHECK))
+  const required = checkRows.filter((row) => row.section === 'required_column')
+  assert.ok(required.length >= 25)
+  assert.deepEqual(required.filter((row) => row.details !== 'present'), [], 'alle vorausgesetzten Spalten vorhanden')
+
+  await createDevice(db, { asset_tag: 'IT-PROD' })
+  const [entry] = await readAudit(db, { action: 'DEVICE_CREATED' })
+  assert.equal(entry.entity_title, 'IT-PROD')
+})
+
 test('Preflight verweigert eine zweite Ausführung ohne Änderungen', async (t) => {
   const db = await createDatabase(t)
   const proposal = await readSql(AUDIT_PROPOSAL)
@@ -710,20 +738,24 @@ test('Preflight prüft Altdaten, wandelt Text-Details um und die Prüfabfragen l
   })
   await db.exec('rollback')
   const { rows: columns } = await db.query(
-    "select column_name from information_schema.columns where table_schema = 'public' and table_name = 'audit_logs' and column_name = 'user_id'",
+    "select column_name from information_schema.columns where table_schema = 'public' and table_name = 'audit_logs' and column_name = 'entity_title'",
   )
-  assert.equal(columns.length, 0, 'nichts wurde geändert')
+  assert.equal(columns.length, 0, 'nichts wurde geändert: entity_title fehlt weiterhin')
+  const { rows: oldKey } = await db.query(
+    "select conname from pg_constraint where conrelid = 'public.audit_logs'::regclass and contype = 'f'",
+  )
+  assert.deepEqual(oldKey.map((row) => row.conname), ['audit_logs_user_fk'], 'alter Fremdschlüssel unverändert')
 
   // Text-Details aus einem älteren Stand werden in jsonb umgewandelt.
   await db.exec(`
     delete from public.audit_logs;
     alter table public.audit_logs alter column details type text using details::text;
-    insert into public.audit_logs (action, entity_type, entity_title, details)
-      values ('DEVICE_CREATED', 'device', 'ALT-1', '{"model":"Alt"}');
+    insert into public.audit_logs (action, entity_type, details)
+      values ('DEVICE_CREATED', 'device', '{"model":"Alt"}');
   `)
   await db.exec(proposal)
   const { rows: [legacy] } = await db.query(
-    "select details, pg_typeof(details)::text as type from public.audit_logs where entity_title = 'ALT-1'",
+    "select details, pg_typeof(details)::text as type from public.audit_logs where details ->> 'model' = 'Alt'",
   )
   assert.deepEqual(legacy, { details: { model: 'Alt' }, type: 'jsonb' })
 
