@@ -96,7 +96,6 @@
 /* Tabelle: scrollt auf kleinen Bildschirmen horizontal statt das Layout zu sprengen. */
 .audit-table-scroll { width: 100%; overflow-x: auto; border-radius: var(--radius-small); }
 .audit-table { width: 100%; min-width: 52rem; border-collapse: collapse; text-align: left; }
-.audit-table--compact { min-width: 38rem; }
 .audit-table th {
   background: var(--color-subtle);
   color: var(--color-muted);

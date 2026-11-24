@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 /**
  * Audit-Log (PBI-15, FA-20/FA-21).
  * Gelesen wird ausschließlich über den RPC `inventory_audit_log_list`; die Tabelle
- * `audit_logs` ist für Browser-Rollen gesperrt. Der Server prüft Rolle, Sitzung
+ * `audit_logs` ist für Browser-Rollen gesperrt. Der Server prüft aktives Konto, Sitzung
  * und `audit:view` selbst – die Prüfungen hier dienen nur der Benutzerführung.
  */
 
@@ -11,7 +11,7 @@ export type AuditEntityType = 'device' | 'user' | 'role'
 
 export const AUDIT_ENTITY_TYPES: readonly AuditEntityType[] = ['device', 'user', 'role']
 
-/** Geschlossene Aktionsliste (Reihenfolge wie in der Spezifikation, Abschnitt 4). */
+/** Geschlossene Aktionsliste (Reihenfolge wie in docs/pbi-15-audit-log.md, „Protokollierte Aktionen“). */
 export const AUDIT_ACTIONS = [
   'DEVICE_CREATED',
   'DEVICE_UPDATED',
@@ -193,12 +193,6 @@ export interface AuditRpcArgs {
   created_to: string | null
 }
 
-export interface AuditEntityScope {
-  type: AuditEntityType
-  id: string
-}
-
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 
 /**
@@ -231,14 +225,9 @@ function codePointLength(value: string): number {
  * - leere Felder werden zu `null` (kein Filter)
  * - die Suche wird getrimmt; leer = keine Suche, mehr als 100 Zeichen = Fehler
  * - `from` = Tagesbeginn, `to` = Tagesende (inklusive, bis zur letzten Mikrosekunde) in lokaler Zeit
- * - optional wird auf ein einzelnes Objekt (z. B. ein Gerät) eingeschränkt
  * Ungültige Eingaben werfen `AuditLogError` mit Code `invalid`.
  */
-export function buildAuditRpcArgs(
-  filters: AuditLogFilters,
-  page: number,
-  entity?: AuditEntityScope,
-): AuditRpcArgs {
+export function buildAuditRpcArgs(filters: AuditLogFilters, page: number): AuditRpcArgs {
   if (!Number.isSafeInteger(page) || page < 0 || page > AUDIT_MAX_PAGE) {
     throw invalid('Ungültige Seitenangabe.')
   }
@@ -249,18 +238,7 @@ export function buildAuditRpcArgs(
     throw invalid('Unbekannter Objekttyp ausgewählt.', 'entityType')
   }
 
-  let entityType: AuditEntityType | null = filters.entityType === '' ? null : filters.entityType
-  let entityId: string | null = null
-  if (entity !== undefined) {
-    if (!isAuditEntityType(entity.type) || typeof entity.id !== 'string' || !UUID_PATTERN.test(entity.id)) {
-      throw invalid(MESSAGES.invalid)
-    }
-    if (entityType !== null && entityType !== entity.type) {
-      throw invalid('Der Objekttyp passt nicht zum ausgewählten Objekt.', 'entityType')
-    }
-    entityType = entity.type
-    entityId = entity.id
-  }
+  const entityType: AuditEntityType | null = filters.entityType === '' ? null : filters.entityType
 
   const search = typeof filters.search === 'string' ? filters.search.trim() : ''
   if (codePointLength(search) > AUDIT_SEARCH_MAX_LENGTH) {
@@ -285,7 +263,7 @@ export function buildAuditRpcArgs(
     target_page: page,
     target_action: filters.action === '' ? null : filters.action,
     target_entity_type: entityType,
-    target_entity_id: entityId,
+    target_entity_id: null,
     search_text: search === '' ? null : search,
     created_from: from === null ? null : from.toISOString(),
     // PostgreSQL speichert Mikrosekunden: .999 → .999999, damit wirklich der ganze Tag enthalten ist.
@@ -307,12 +285,9 @@ async function requireSession() {
 }
 
 export const auditLogApi = {
-  /**
-   * Lädt eine Seite des Audit-Logs. Eingaben werden vor dem Netzwerkaufruf geprüft;
-   * mit `entity` wird auf ein einzelnes Objekt eingeschränkt (z. B. ein einzelnes Gerät).
-   */
-  async list(filters: AuditLogFilters, page: number, entity?: AuditEntityScope): Promise<AuditLogPage> {
-    const args = buildAuditRpcArgs(filters, page, entity)
+  /** Lädt eine Seite des Audit-Logs. Eingaben werden vor dem Netzwerkaufruf geprüft. */
+  async list(filters: AuditLogFilters, page: number): Promise<AuditLogPage> {
+    const args = buildAuditRpcArgs(filters, page)
     const db = await requireSession()
     let data: unknown
     try {

@@ -20,7 +20,7 @@ const fixturesUrl = new URL('../fixtures/', import.meta.url)
 
 export const readSql = (relativePath) => readFile(new URL(relativePath, supabaseRoot), 'utf8')
 
-// Produktionsreihenfolge laut Spezifikation (Migrationen, danach Proposals).
+// Produktionsreihenfolge: zuerst Migrationen, danach die Proposals in Installationsreihenfolge.
 const BASE_SCRIPTS = [
   'migrations/20261025200000_employee_profiles_for_new_auth_users.sql',
   'migrations/20261026080000_auth_profile_read_policies.sql',
@@ -32,8 +32,6 @@ const BASE_SCRIPTS = [
   'proposals/20261115_device_status_and_admin_only_edits.sql',
   'proposals/20261115_issue_10_assign_device.sql',
   'proposals/20261115_issue_11_return_and_assignment_overview.sql',
-  // Sicherheitskorrektur für inventory_admin_assign_role (current_role-Variable).
-  'proposals/20261123_fix_admin_assign_role_guard.sql',
 ]
 
 export const AUDIT_PROPOSAL = 'proposals/20261123_pbi_15_audit_log.sql'

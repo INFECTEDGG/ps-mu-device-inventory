@@ -260,101 +260,46 @@ profiles.id
 
 ## 7. `audit_logs`
 
-Die Tabelle `audit_logs` protokolliert relevante Aktionen innerhalb des Device Inventory (PBI-15, **FA-20**, **FA-21**).
+Die Tabelle `audit_logs` protokolliert relevante Aktionen innerhalb des Device Inventory.
 
 ### Aufgabe
 
-Das Audit-Log macht Änderungen und sicherheitsrelevante Aktionen nachvollziehbar: **wer** (ausführender Benutzer), **was** (Aktion und betroffenes Objekt) und **wann** (Zeitpunkt). Administratoren sehen alle Einträge auf der Seite **Audit-Log**.
+Das Audit-Log dient der Nachvollziehbarkeit von Änderungen und sicherheitsrelevanten Aktionen innerhalb der Anwendung.
+
+Beispielsweise können folgende Aktionen protokolliert werden:
+
+- Gerät erstellt
+- Gerät bearbeitet
+- Gerätestatus geändert
+- Gerät zugewiesen
+- Gerät zurückgegeben
+- Benutzer erstellt
+- Benutzer deaktiviert
+- Benutzerrolle geändert
 
 ### Wichtige Attribute
 
 | Attribut | Beschreibung |
 |---|---|
 | `id` | Eindeutige UUID des Audit-Eintrags |
-| `user_id` | Ausführender Benutzer (`profiles.id`); leer, wenn kein Benutzer ermittelt werden kann („System“) |
-| `action` | Art der durchgeführten Aktion (Pflichtfeld) |
-| `entity_type` | Art des betroffenen Objekts: `device`, `user` oder `role` (Pflichtfeld) |
-| `entity_id` | UUID des betroffenen Objekts (bei Rollen leer) |
-| `entity_title` | Lesbare Bezeichnung zum Zeitpunkt der Aktion, z. B. Inventarnummer, Name oder Rollenname |
-| `details` | Zusätzliche Informationen als `jsonb` |
-| `created_at` | Zeitpunkt der Aktion (Pflichtfeld) |
+| `user_id` | Benutzer, der die Aktion durchgeführt hat |
+| `action` | Art der durchgeführten Aktion |
+| `entity_type` | Art des betroffenen Objekts |
+| `entity_id` | ID des betroffenen Objekts |
+| `details` | Zusätzliche Informationen zur Aktion |
+| `created_at` | Zeitpunkt der Aktion |
 
-### Protokollierte Aktionen
-
-| Aktion | Anzeige | Auslöser | `entity_type` | Inhalt von `details` |
-|---|---|---|---|---|
-| `DEVICE_CREATED` | Gerät angelegt | Gerät angelegt | `device` | Gerätedaten |
-| `DEVICE_UPDATED` | Gerätedaten geändert | Stammdaten geändert (ohne Status) | `device` | `changes` mit altem und neuem Wert je Feld |
-| `DEVICE_STATUS_CHANGED` | Gerätestatus geändert | Status geändert (auch durch Zuweisung/Rücknahme) | `device` | `old_status`, `new_status` |
-| `DEVICE_DELETED` | Gerät gelöscht | Gerät gelöscht | `device` | Gerätedaten |
-| `DEVICE_ASSIGNED` | Gerät zugewiesen | Zuweisung angelegt | `device` | `assignment_id`, `employee_id`, `employee_name`, `assigned_at` |
-| `DEVICE_RETURNED` | Gerät zurückgenommen | Rückgabezeitpunkt gesetzt | `device` | `assignment_id`, `employee_id`, `employee_name`, `assigned_at`, `returned_at` |
-| `ASSIGNMENT_UPDATED` | Zuweisung korrigiert | sonstige Änderung einer Zuweisung | `device` | `assignment_id`, `changes` |
-| `ASSIGNMENT_DELETED` | Zuweisung gelöscht | Zuweisung gelöscht | `device` | Zuweisungsdaten |
-| `USER_CREATED` | Benutzer angelegt | Profil angelegt | `user` | `first_name`, `last_name`, `role`, `email` |
-| `USER_UPDATED` | Benutzerdaten geändert | Profildaten geändert | `user` | `changes` mit altem und neuem Wert je Feld |
-| `USER_ROLE_CHANGED` | Benutzerrolle geändert | Rolle geändert | `user` | `old_role`, `new_role` |
-| `USER_DISABLED` | Benutzer deaktiviert | `disabled_at` gesetzt | `user` | `disabled_at` |
-| `USER_ENABLED` | Benutzer reaktiviert | `disabled_at` entfernt | `user` | – |
-| `USER_DELETED` | Benutzer gelöscht | Profil gelöscht | `user` | Profildaten |
-| `ROLE_PERMISSIONS_CHANGED` | Rollenberechtigungen geändert | SuperAdmin ändert Rechte einer Rolle | `role` | `role`, `permissions` (neuer, sortierter Stand) |
-
-Zuweisungen und Rückgaben werden beim betroffenen Gerät protokolliert (`entity_type = 'device'`, `entity_id` = Geräte-ID). Dadurch lassen sich alle Einträge eines Gerätes gemeinsam abrufen (Filter `target_entity_id` der RPC `inventory_audit_log_list`). Der Mitarbeitername wird als Momentaufnahme gespeichert. Aktualisierungen ohne fachliche Änderung, z. B. nur `updated_at`, erzeugen keinen Eintrag. Neue Spalten in `devices`, `assignments` oder `profiles` erscheinen automatisch in `changes`.
-
-### Umsetzung
-
-Die Einträge werden durch Datenbank-Trigger auf `devices`, `assignments`, `profiles` und `inventory_private.role_change_audit` geschrieben (Proposal `supabase/proposals/20261123_pbi_15_audit_log.sql`). Damit wird jede Änderung protokolliert, egal auf welchem Weg sie in die Datenbank gelangt: Browser, RPC oder Supabase-Dashboard. Der Audit-Eintrag ist Teil derselben Transaktion: Wird die Änderung zurückgerollt, entfällt auch der Eintrag (**NFA-06**).
-
-Der ausführende Benutzer wird über `auth.uid()` aus der Supabase-Sitzung ermittelt. Ohne Benutzersitzung werden fachliche Rückfallwerte verwendet:
-
-- bei Zuweisungen `assigned_by`,
-- bei Rückgaben `returned_by`,
-- bei neuen Konten `app_metadata.created_by`, falls die Edge Function diesen Wert setzt.
-
-Es werden nur IDs mit vorhandenem Profil übernommen, damit der Fremdschlüssel nie die eigentliche Änderung abbricht. Lässt sich kein Benutzer ermitteln, etwa bei Änderungen im Supabase-Dashboard, wird der Eintrag trotzdem geschrieben, mit leerem `user_id` („System“).
-
-Die Funktionen liegen im nicht über die API erreichbaren Schema `inventory_private`. Das Proposal ersetzt die nie gemergten Migrationen `20261024120000_audit_logging.sql` und `20261024130000_audit_log_read_access.sql` und entfernt deren Objekte, falls sie bereits ausgeführt wurden.
-
-### Manipulationsschutz
-
-- Browser-Rollen (`anon`, `authenticated`) haben keinerlei direkte Rechte auf `audit_logs`. Der Service-Key kann nur lesen.
-- Ein Trigger verhindert `UPDATE`, `DELETE` und `TRUNCATE`, auch für den Datenbankbesitzer. Einzige Ausnahme ist `ON DELETE SET NULL` von `user_id`, wenn das Profil des ausführenden Benutzers gelöscht wird.
-
-### Berechtigungen
-
-| Rolle | Lesen | Anlegen, Ändern, Löschen |
-|---|---|---|
-| SuperAdmin | alle Einträge (mit `audit:view`) | nein |
-| Administrator | alle Einträge (mit `audit:view`) | nein |
-| Gerätemanager | nein | nein |
-| Mitarbeiter | nein | nein |
-| nicht angemeldet | nein | nein |
-
-Gelesen wird ausschließlich über die RPC `public.inventory_audit_log_list(target_page, target_action, target_entity_type, target_entity_id, search_text, created_from, created_to)`. Sie prüft bei jedem Aufruf:
-
-- angemeldeter Benutzer mit aktivem Konto,
-- aktive Serversitzung,
-- Rolle `admin` oder `super_admin`,
-- dynamische Berechtigung `audit:view`.
-
-Wird die Rolle oder die Berechtigung entzogen, das Konto deaktiviert oder die Sitzung beendet, entfällt der Zugriff sofort. Die RPC filtert nach Aktion, Objekttyp, Objekt, Zeitraum und Suchbegriff und liefert Seiten zu je 25 Einträgen (neueste zuerst) mit Gesamtzahl.
+Das Feld `details` kann beispielsweise als `jsonb` umgesetzt werden, sodass zusätzliche Informationen flexibel gespeichert werden können.
 
 ### Beispiel
 
 ```json
 {
-  "user_id": "…",
   "action": "DEVICE_ASSIGNED",
   "entity_type": "device",
-  "entity_id": "…",
-  "entity_title": "IT-0003",
   "details": {
-    "assignment_id": "…",
-    "employee_id": "…",
-    "employee_name": "Erika Muster",
-    "assigned_at": "2026-11-23T12:00:00+00:00"
-  },
-  "created_at": "2026-11-23T12:00:00+00:00"
+    "employee_id": "..."
+  }
 }
 ```
 

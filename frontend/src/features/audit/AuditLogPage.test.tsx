@@ -67,14 +67,14 @@ function manyEntries(count: number, offset = 0): AuditLogEntry[] {
 const allExceptAudit: Permission[] = ['dashboard:view', 'devices:view_all', 'users:manage', 'settings:view']
 
 describe('Audit-Log – Zugriffsregel', () => {
-  it('erlaubt nur Administratoren und SuperAdmins mit audit:view', () => {
+  it('erlaubt den Zugriff mit audit:view (standardmäßig Administratoren und SuperAdmins)', () => {
     expect(mayViewAuditLog('admin')).toBe(true)
     expect(mayViewAuditLog('super_admin')).toBe(true)
     expect(mayViewAuditLog('device_manager')).toBe(false)
     expect(mayViewAuditLog('employee')).toBe(false)
     expect(mayViewAuditLog(null)).toBe(false)
     expect(mayViewAuditLog('admin', allExceptAudit)).toBe(false)
-    expect(mayViewAuditLog('device_manager', ['audit:view'])).toBe(false)
+    expect(mayViewAuditLog('device_manager', ['audit:view'])).toBe(true)
     expect(mayViewAuditLog('admin', ['audit:view'])).toBe(true)
   })
 })
@@ -131,7 +131,6 @@ describe('Audit-Log-Seite', () => {
   it.each([
     ['Mitarbeiter', 'employee' as const, null],
     ['Gerätemanager', 'device_manager' as const, null],
-    ['Gerätemanager mit zugewiesenem audit:view', 'device_manager' as const, ['audit:view'] as Permission[]],
     ['Administrator ohne audit:view', 'admin' as const, allExceptAudit],
   ])('verweigert %s den Zugriff ohne Datenabruf', (_label, role, permissions) => {
     auth(role, permissions)
@@ -139,6 +138,14 @@ describe('Audit-Log-Seite', () => {
     expect(screen.getByRole('heading', { name: 'Zugriff verweigert' })).toBeTruthy()
     expect(screen.queryByRole('form')).toBeNull()
     expect(auditLogApi.list).not.toHaveBeenCalled()
+  })
+
+  it('erlaubt Gerätemanagern den Zugriff, wenn der SuperAdmin audit:view zugewiesen hat', async () => {
+    auth('device_manager', ['dashboard:view', 'audit:view'])
+    vi.mocked(auditLogApi.list).mockResolvedValue(page([makeEntry()]))
+    render(<AuditLogPage />)
+    expect(screen.queryByRole('heading', { name: 'Zugriff verweigert' })).toBeNull()
+    await waitFor(() => expect(auditLogApi.list).toHaveBeenCalledTimes(1))
   })
 
   it('verweigert den Zugriff ohne Anmeldung', () => {

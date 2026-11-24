@@ -19,14 +19,13 @@ Dieses Verzeichnis enthält die SQL-Skripte für die Supabase-Datenbank sowie au
 3. Das Proposal **vollständig** als ein Skript ausführen. Jedes Proposal läuft in einer Transaktion und prüft zuerst seine Voraussetzungen (`DO $preflight$`). Bei einer Abweichung bricht es mit einer deutschen Fehlermeldung ab, ohne etwas zu ändern.
 4. Danach neu anmelden und die Anwendung testen. Erst dann nach `main` mergen, denn `main` wird automatisch auf Vercel veröffentlicht.
 
-### Aktuelle Proposals (Sprint 5)
+### Aktuelles Proposal (Sprint 5)
 
-| Reihenfolge | Prüfdatei | Proposal | Inhalt |
-|---|---|---|---|
-| 1 | – | `20261123_fix_admin_assign_role_guard.sql` | Sicherheitskorrektur der Rollenzuweisung (Schutz von SuperAdmin und Administratoren) |
-| 2 | `pbi-15-audit-log-preflight.sql` | `20261123_pbi_15_audit_log.sql` | Audit-Log (PBI-15, FA-20/FA-21), ersetzt die alten Migrationen vom 24.10.2026 |
+| Prüfdatei | Proposal | Inhalt |
+|---|---|---|
+| `pbi-15-audit-log-preflight.sql` | `20261123_pbi_15_audit_log.sql` | Audit-Log (PBI-15, FA-20/FA-21), ersetzt die alten Migrationen vom 24.10.2026 |
 
-Die beiden Proposals sind voneinander unabhängig; die Reihenfolge ist eine Empfehlung. Voraussetzung sind die bereits installierten Proposals für Benutzerverwaltung, SuperAdmin-Berechtigungen, Gerätestatus sowie Zuweisung und Rücknahme (Issues #8, #10, #11). Details zum Audit-Log stehen in [`docs/pbi-15-audit-log.md`](../docs/pbi-15-audit-log.md).
+Voraussetzung sind die bereits installierten Proposals für Benutzerverwaltung, SuperAdmin-Berechtigungen, Gerätestatus sowie Zuweisung und Rücknahme (Issues #8, #10, #11). Details zum Audit-Log stehen in [`docs/pbi-15-audit-log.md`](../docs/pbi-15-audit-log.md).
 
 ## Tests ausführen
 
@@ -42,4 +41,4 @@ Die Tests laufen zusätzlich bei jedem Push und Pull Request über GitHub Action
 
 ## Audit-Logging
 
-Aufbau der Tabelle `audit_logs`, protokollierte Aktionen, Manipulationsschutz und Berechtigungen sind in [`docs/sql-tables.md`](../docs/sql-tables.md#7-audit_logs) beschrieben.
+Aufbau der Tabelle `audit_logs`, protokollierte Aktionen, Manipulationsschutz und Berechtigungen sind in [`docs/pbi-15-audit-log.md`](../docs/pbi-15-audit-log.md#datenbank-tabelle-audit_logs) beschrieben.

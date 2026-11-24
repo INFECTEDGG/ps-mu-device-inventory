@@ -1,5 +1,5 @@
 import { isPermission, permissionLabels, type Role } from '../../config/permissions'
-import { deviceStatusLabel } from '../devices/deviceStatusLabels'
+import { deviceStatusLabel } from './deviceStatusLabels'
 import type { AuditAction, AuditEntityType, AuditLogEntry } from './auditLogApi'
 
 /**

@@ -13,8 +13,6 @@ interface AuditLogEntriesProps {
   entries: readonly AuditLogEntry[]
   /** Zugänglicher Name der scrollbaren Tabelle (Standard: „Audit-Einträge“). */
   label?: string
-  /** Blendet die Spalte „Objekt“ aus (z. B. für eine Ansicht zu einem einzelnen Objekt). */
-  compact?: boolean
 }
 
 function validDateTime(iso: string): string | undefined {
@@ -22,17 +20,17 @@ function validDateTime(iso: string): string | undefined {
 }
 
 /** Wiederverwendbare Tabelle der Audit-Einträge (z. B. globales Audit-Log). */
-export function AuditLogEntries({ entries, label = 'Audit-Einträge', compact = false }: AuditLogEntriesProps) {
+export function AuditLogEntries({ entries, label = 'Audit-Einträge' }: AuditLogEntriesProps) {
   return (
     <div className="audit-table-scroll" role="region" aria-label={label} tabIndex={0}>
-      <table className={`audit-table${compact ? ' audit-table--compact' : ''}`}>
+      <table className="audit-table">
         <caption className="sr-only">{label}</caption>
         <thead>
           <tr>
             <th scope="col">Zeitpunkt</th>
             <th scope="col">Benutzer</th>
             <th scope="col">Aktion</th>
-            {!compact && <th scope="col">Objekt</th>}
+            <th scope="col">Objekt</th>
             <th scope="col">Details</th>
           </tr>
         </thead>
@@ -56,10 +54,10 @@ export function AuditLogEntries({ entries, label = 'Audit-Einträge', compact = 
                     </>}
                 </td>
                 <td><span className="audit-action">{auditActionLabel(entry.action)}</span></td>
-                {!compact && <td>
+                <td>
                   <span className="audit-muted audit-muted--label">{auditEntityLabel(entry.entity_type)}</span>
                   <strong>{auditEntityTitle(entry)}</strong>
-                </td>}
+                </td>
                 <td>
                   {details.length === 0
                     ? <span className="audit-muted">

@@ -450,7 +450,7 @@ test('Audit-Einträge sind auch für Superuser unveränderlich', async (t) => {
   assert.deepEqual(await readAudit(db), before)
 })
 
-test('Administratoren und SuperAdmins lesen das Audit-Log über die RPC (FA-21)', async (t) => {
+test('Administratoren und SuperAdmins lesen das Audit-Log standardmäßig über die RPC (FA-21)', async (t) => {
   const db = await createDatabase(t)
   const deviceId = await createDevice(db, { asset_tag: 'IT-0700' })
   await pause()
@@ -482,7 +482,7 @@ test('Administratoren und SuperAdmins lesen das Audit-Log über die RPC (FA-21)'
   assert.equal(perDevice.total, 2)
 })
 
-test('Gerätemanager, Mitarbeiter und nicht angemeldete Benutzer erhalten keinen Zugriff (FA-21)', async (t) => {
+test('Gerätemanager, Mitarbeiter und nicht angemeldete Benutzer erhalten ohne audit:view keinen Zugriff (FA-21)', async (t) => {
   const db = await createDatabase(t)
   await createDevice(db)
 
@@ -492,6 +492,29 @@ test('Gerätemanager, Mitarbeiter und nicht angemeldete Benutzer erhalten keinen
   // Ungültige Parameter verraten Unberechtigten nichts: zuerst wird die Berechtigung geprüft.
   await assert.rejects(listAudit(db, users.employee, { page: -1 }), forbidden)
   await assert.rejects(asAnon(db, 'select public.inventory_audit_log_list()'), forbidden)
+})
+
+test('eine Rolle, der der SuperAdmin audit:view zuweist, liest das Audit-Log; nach dem Entzug nicht mehr (FA-21)', async (t) => {
+  const db = await createDatabase(t)
+  await createDevice(db, { asset_tag: 'IT-0710' })
+  await assert.rejects(listAudit(db, users.manager), forbidden, 'standardmäßig ohne audit:view')
+
+  const { rows } = await asUser(db, users.superAdmin, 'select public.inventory_superadmin_list_permissions() as matrix')
+  const managerDefaults = rows[0].matrix.device_manager
+  assert.ok(!managerDefaults.includes('audit:view'))
+  await asUser(db, users.superAdmin, 'select public.inventory_superadmin_update_permissions($1, $2)', [
+    'device_manager', [...managerDefaults, 'audit:view'],
+  ])
+
+  const granted = await signInAgain(db, users.manager)
+  const page = await listAudit(db, granted)
+  assert.ok(page.items.some((item) => item.action === 'DEVICE_CREATED' && item.entity_title === 'IT-0710'))
+  assert.ok(page.items.some((item) => item.action === 'ROLE_PERMISSIONS_CHANGED'), 'die Vergabe selbst ist protokolliert')
+
+  await asUser(db, users.superAdmin, 'select public.inventory_superadmin_update_permissions($1, $2)', ['device_manager', managerDefaults])
+  const revoked = await signInAgain(db, users.manager)
+  await assert.rejects(listAudit(db, revoked), forbidden, 'nach dem Entzug')
+  await assert.rejects(listAudit(db, users.employee), forbidden, 'andere Rollen bleiben ausgeschlossen')
 })
 
 test('Administrator verliert den Zugriff ohne audit:view, nach Deaktivierung oder Sitzungsende', async (t) => {
@@ -514,6 +537,11 @@ test('Administrator verliert den Zugriff ohne audit:view, nach Deaktivierung ode
   const disabledDb = await createDatabase(t)
   await asUser(disabledDb, users.superAdmin, 'select public.inventory_admin_disable_user($1)', [users.admin.id])
   await assert.rejects(listAudit(disabledDb, users.admin), forbidden)
+  // Auch mit einer neuen, aktiven Sitzung greift die Kontoprüfung selbst.
+  const afterDisable = await signInAgain(disabledDb, users.admin)
+  await assert.rejects(listAudit(disabledDb, afterDisable), {
+    code: errorCodes.insufficientPrivilege, message: 'Das Benutzerkonto ist deaktiviert.',
+  })
 
   // c) Sitzung wurde beendet.
   const endedDb = await createDatabase(t)

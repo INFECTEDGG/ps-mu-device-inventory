@@ -23,7 +23,7 @@ PGlite ist eine vollständige PostgreSQL-Instanz, die direkt in Node.js läuft. 
 
 Der GitHub-Actions-Workflow [`.github/workflows/tests.yml`](../.github/workflows/tests.yml) führt alle Bereiche bei jedem Push und bei jedem Pull Request gegen `main` aus. Das Ergebnis erscheint im Pull Request unter **Checks** sowie im Reiter **Actions** des Repositorys.
 
-Ein Pull Request mit fehlgeschlagenen Tests sollte erst nach der Fehlerbehebung gemergt werden.
+Ein Pull Request mit fehlgeschlagenen Tests sollte erst nach der Fehlerbehebung gemergt werden. Ausnahme sind die in [Abschnitt 5](#5-noch-offene-testfälle) genannten 7 bekannten Fehlschläge in Testdateien anderer Teammitglieder, die auch auf `main` bestehen; alle übrigen Tests müssen grün sein.
 
 ---
 
@@ -40,7 +40,7 @@ Ein Pull Request mit fehlgeschlagenen Tests sollte erst nach der Fehlerbehebung 
 | **FA-13** | Nach der Rücknahme ist das Gerät wieder `available` und erneut zuweisbar | `assignments.test.mjs` |
 | **FA-14** | Jede Statusänderung erscheint in der Statushistorie; abgeschlossene Zuweisungen bleiben nach der Rückgabe erhalten | `assignments.test.mjs` |
 | **FA-20** | Alle relevanten Aktionen werden mit Benutzer, Aktion, Objekt und Zeitpunkt protokolliert, auch ohne Benutzersitzung („System“) | `auditLog.test.mjs` |
-| **FA-21** | Nur aktive Administratoren und SuperAdmins mit `audit:view` lesen das Audit-Log; Filter, Suche und Seiten | `auditLog.test.mjs` |
+| **FA-21** | Nur aktive Benutzer mit `audit:view` (standardmäßig Administratoren und SuperAdmins) lesen das Audit-Log; Vergabe und Entzug durch den SuperAdmin; Filter, Suche und Seiten | `auditLog.test.mjs` |
 | **NFA-05** | Pro Gerät höchstens eine aktive Zuweisung; mehrere Geräte pro Mitarbeiter möglich | `assignments.test.mjs` |
 | **NFA-06** | Eine fehlgeschlagene Zuweisung hinterlässt keine Teildaten; bei einem Rollback entfällt auch der Audit-Eintrag | `assignments.test.mjs`, `auditLog.test.mjs` |
 | Datenintegrität (Project Log vom 16.10.2026) | Ein Rückgabezeitpunkt liegt nie vor dem Zuweisungszeitpunkt | `assignments.test.mjs` |
@@ -53,6 +53,7 @@ Die übrigen Testdateien (`authReadPolicies`, `employeeProfiles`, `serverSession
 
 ## 5. Noch offene Testfälle
 
+- **Bekannter Fehler im Test-Setup (auch auf `main`):** `hiddenDeactivatedUsers.test.mjs`, `listDisabledUsers.test.mjs` und `superAdminPermissions.test.mjs` schlagen derzeit beim Aufbau ihrer Testdatenbank fehl (7 Tests, `null value in column "id" of relation "roles" violates not-null constraint`). Ihre Nachbildung von `public.roles` vergibt keine IDs automatisch, das Proposal `20261028102000_superadmin_role_permissions.sql` legt `super_admin` aber ohne ID an. Die Korrektur gehört zu den Verantwortlichen dieser Tests und ist nicht Teil von PBI-15.
 - Frontend und Datenbank werden getrennt getestet. Ein End-to-End-Test gegen eine echte Supabase-Instanz (Browser → PostgREST → Datenbank) fehlt noch.
 - Die Supabase Edge Function `admin-users` wird nur über ihre Handler-Logik getestet (`frontend/tests/adminUsers.test.mjs`).
 

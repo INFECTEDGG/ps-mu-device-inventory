@@ -12,8 +12,7 @@ import {
   vi,
 } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
-import { navigationEntries } from './config/navigation'
-import type { Permission, Role } from './config/permissions'
+import type { Role } from './config/permissions'
 import { useAppNavigation } from './hooks/useAppNavigation'
 import { useAuthSession } from './hooks/useAuthSession'
 import App from './App'
@@ -50,10 +49,6 @@ vi.mock('./features/users/UserManagementPage', () => ({
   UserManagementPage: () => <div>Geschützter Seiteninhalt</div>,
 }))
 
-vi.mock('./features/audit/AuditLogPage', () => ({
-  AuditLogPage: () => <div>Audit-Log-Inhalt</div>,
-}))
-
 vi.mock('./pages/NotFoundPage', () => ({
   NotFoundPage: () => <div>Seite nicht gefunden</div>,
 }))
@@ -76,11 +71,7 @@ function setCurrentPath(path: string) {
 }
 
 // Gemeinsamen AuthProvider-Zustand simulieren
-function setAuthState(
-  role: Role | null,
-  signedIn = true,
-  permissions: readonly Permission[] | null = null,
-) {
+function setAuthState(role: Role | null, signedIn = true) {
   const session = signedIn
     ? ({
         user: { id: 'test-user' },
@@ -92,7 +83,7 @@ function setAuthState(
     user: session?.user ?? null,
     userId: session?.user.id ?? null,
     role: signedIn ? role : null,
-    permissions,
+    permissions: null,
     isLoading: false,
     isRoleLoading: false,
     isSigningOut: false,
@@ -195,70 +186,5 @@ describe('RBAC - Seitenzugriff nach Benutzerrolle', () => {
     expect(
       screen.queryByText('Geschützter Seiteninhalt')
     ).toBeNull()
-  })
-})
-
-describe('RBAC - Audit-Log (FA-21)', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1))
-    vi.stubGlobal('cancelAnimationFrame', vi.fn())
-  })
-
-  afterEach(() => {
-    cleanup()
-    vi.unstubAllGlobals()
-  })
-
-  it('Navigation enthält das Audit-Log direkt vor den Einstellungen', () => {
-    const labels = navigationEntries.map((entry) => entry.label)
-    const audit = navigationEntries.find((entry) => entry.path === '/audit-log')
-
-    expect(audit).toMatchObject({
-      label: 'Audit-Log',
-      icon: 'audit',
-      requiredPermission: 'audit:view',
-    })
-    expect(labels.indexOf('Audit-Log')).toBe(labels.indexOf('Einstellungen') - 1)
-  })
-
-  it.each(['admin', 'super_admin'] as const)('%s darf das Audit-Log öffnen', (role) => {
-    setCurrentPath('/audit-log')
-    setAuthState(role)
-
-    render(<App />)
-
-    expect(screen.getByText('Audit-Log-Inhalt')).toBeTruthy()
-    expect(document.title).toBe('Audit-Log | Device Inventory')
-  })
-
-  it.each(['device_manager', 'employee'] as const)('%s darf das Audit-Log nicht öffnen', (role) => {
-    setCurrentPath('/audit-log')
-    setAuthState(role)
-
-    render(<App />)
-
-    expect(screen.getByText('Zugriff verweigert')).toBeTruthy()
-    expect(screen.queryByText('Audit-Log-Inhalt')).toBeNull()
-  })
-
-  it('Audit-Log bleibt trotz zugewiesener Berechtigung Administratoren vorbehalten', () => {
-    setCurrentPath('/audit-log')
-    setAuthState('device_manager', true, ['dashboard:view', 'audit:view'])
-
-    render(<App />)
-
-    expect(screen.getByText('Zugriff verweigert')).toBeTruthy()
-    expect(screen.queryByText('Audit-Log-Inhalt')).toBeNull()
-  })
-
-  it('Admin ohne audit:view darf das Audit-Log nicht öffnen', () => {
-    setCurrentPath('/audit-log')
-    setAuthState('admin', true, ['dashboard:view', 'users:manage', 'settings:view'])
-
-    render(<App />)
-
-    expect(screen.getByText('Zugriff verweigert')).toBeTruthy()
-    expect(screen.queryByText('Audit-Log-Inhalt')).toBeNull()
   })
 })

@@ -1,6 +1,5 @@
 export type IconName =
   | 'assignments'
-  | 'audit'
   | 'close'
   | 'dashboard'
   | 'devices'
@@ -44,13 +43,6 @@ export function AppIcon({ name, size = 24 }: AppIconProps) {
       return (
         <svg {...commonProps}>
           <path d="M8 7h11M15 3l4 4-4 4M16 17H5M9 13l-4 4 4 4" />
-        </svg>
-      )
-    case 'audit':
-      return (
-        <svg {...commonProps}>
-          <rect x="5" y="4" width="14" height="17" rx="2" />
-          <path d="M9 2.5h6v3H9zM9 10h6M9 14h6M9 18h3.5" />
         </svg>
       )
     case 'users':

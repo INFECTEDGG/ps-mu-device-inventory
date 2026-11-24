@@ -51,7 +51,7 @@ const noFilterArgs = {
 }
 
 describe('Audit-Log – Aktionsliste', () => {
-  it('enthält alle 15 Aktionen der Spezifikation in fester Reihenfolge', () => {
+  it('enthält alle 15 Aktionen in fester Reihenfolge', () => {
     expect(AUDIT_ACTIONS).toEqual([
       'DEVICE_CREATED', 'DEVICE_UPDATED', 'DEVICE_STATUS_CHANGED', 'DEVICE_DELETED',
       'DEVICE_ASSIGNED', 'DEVICE_RETURNED', 'ASSIGNMENT_UPDATED', 'ASSIGNMENT_DELETED',
@@ -184,26 +184,6 @@ describe('Audit-Log – RPC-Argumente', () => {
       .toThrow(expect.objectContaining({ code: 'invalid', field: 'entityType' }))
   })
 
-  it('schränkt optional auf ein einzelnes Gerät ein', () => {
-    const args = buildAuditRpcArgs(filters(), 2, { type: 'device', id: DEVICE_ID })
-    expect(args).toEqual({ ...noFilterArgs, target_page: 2, target_entity_type: 'device', target_entity_id: DEVICE_ID })
-    expect(buildAuditRpcArgs(filters({ entityType: 'device' }), 0, { type: 'device', id: DEVICE_ID }).target_entity_id)
-      .toBe(DEVICE_ID)
-  })
-
-  it('lehnt ungültige Objekt-Einschränkungen ab', () => {
-    for (const entity of [
-      { type: 'device' as const, id: '' },
-      { type: 'device' as const, id: 'IT-0003' },
-      { type: 'device' as const, id: `${DEVICE_ID}x` },
-      { type: 'assignment' as unknown as 'device', id: DEVICE_ID },
-    ]) {
-      expect(() => buildAuditRpcArgs(filters(), 0, entity)).toThrow(expect.objectContaining({ code: 'invalid' }))
-    }
-    expect(() => buildAuditRpcArgs(filters({ entityType: 'user' }), 0, { type: 'device', id: DEVICE_ID }))
-      .toThrow(expect.objectContaining({ code: 'invalid', field: 'entityType' }))
-  })
-
   it('lehnt ungültige oder unvollständige Datumswerte ab', () => {
     for (const value of ['2026-02-30', '2026-13-01', '2026-00-10', '2026-11-31', '2026-11', '23.11.2026',
       '2026-11-23T10:00', '0099-01-01', 'gestern', '2026-1-5']) {
@@ -285,14 +265,6 @@ describe('Audit-Log – Supabase-Aufruf', () => {
       ...noFilterArgs, target_page: 1, target_action: 'DEVICE_STATUS_CHANGED', search_text: 'IT',
     })
     expect(page.items[0]?.entity_title).toBe('IT-0003')
-  })
-
-  it('übergibt die Geräte-Einschränkung', async () => {
-    calls.rpc.mockResolvedValue({ data: { total: 0, page_size: 25, items: [] }, error: null })
-    await auditLogApi.list(EMPTY_AUDIT_FILTERS, 0, { type: 'device', id: DEVICE_ID })
-    expect(calls.rpc).toHaveBeenCalledWith('inventory_audit_log_list', {
-      ...noFilterArgs, target_entity_type: 'device', target_entity_id: DEVICE_ID,
-    })
   })
 
   it.each([

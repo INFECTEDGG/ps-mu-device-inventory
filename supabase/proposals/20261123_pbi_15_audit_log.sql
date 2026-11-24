@@ -22,8 +22,10 @@
 -- * Niemand schreibt, ändert oder löscht Audit-Einträge direkt (auch kein
 --   Superuser per UPDATE/DELETE/TRUNCATE). Einzige Ausnahme: ON DELETE SET NULL
 --   für user_id, wenn ein Profil gelöscht wird.
--- * Lesen ausschließlich über public.inventory_audit_log_list() für aktive
---   Administratoren/SuperAdmins mit der Berechtigung audit:view.
+-- * Lesen ausschließlich über public.inventory_audit_log_list() für aktive Konten
+--   mit aktiver Sitzung und der Berechtigung audit:view (standardmäßig Administratoren
+--   und SuperAdmins; der SuperAdmin kann audit:view weiteren Rollen zuweisen – dieselbe
+--   Regel wie Menü und Seitenzugriff im Frontend).
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 
@@ -718,7 +720,7 @@ CREATE TRIGGER inventory_audit_logs_no_truncate
   FOR EACH STATEMENT EXECUTE FUNCTION inventory_private.audit_logs_guard();
 
 -- ---------------------------------------------------------------------------
--- 7. Leseberechtigung (FA-21): aktive Admin/SuperAdmin mit audit:view
+-- 7. Leseberechtigung (FA-21): aktives Konto, aktive Sitzung und audit:view
 -- ---------------------------------------------------------------------------
 CREATE FUNCTION inventory_private.audit_require_reader()
 RETURNS uuid
@@ -729,7 +731,6 @@ SET search_path = ''
 AS $function$
 DECLARE
   caller uuid := auth.uid();
-  caller_role text;
 BEGIN
   -- Sitzung und Kontostatus zuerst prüfen; inventory_my_permissions() erst danach.
   IF caller IS NULL THEN
@@ -742,13 +743,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'Aktive Sitzung erforderlich.';
   END IF;
 
-  SELECT r.name INTO caller_role
-  FROM public.profiles p
-  JOIN public.roles r ON r.id = p.role_id
-  WHERE p.id = caller AND p.disabled_at IS NULL;
-  IF caller_role IS NULL OR caller_role NOT IN ('admin', 'super_admin') THEN
-    RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'Keine Berechtigung für das Audit-Log.';
-  END IF;
+  -- Maßgeblich ist allein audit:view (Rollenmatrix des SuperAdmins), wie im Frontend.
   IF NOT coalesce('audit:view' = ANY (public.inventory_my_permissions()), false) THEN
     RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'Keine Berechtigung für das Audit-Log.';
   END IF;

@@ -38,7 +38,7 @@ function countLabel(total: number): string {
   return total === 1 ? '1 Eintrag gefunden.' : `${new Intl.NumberFormat('de-DE').format(total)} Einträge gefunden.`
 }
 
-/** Audit-Log für Administratoren und SuperAdmins (PBI-15, FA-20/FA-21). */
+/** Audit-Log für Benutzer mit `audit:view`, standardmäßig Administratoren und SuperAdmins (PBI-15, FA-20/FA-21). */
 export function AuditLogPage() {
   const { session, userId, role, permissions, isLoading, isRoleLoading } = useAuthSession()
   const allowed = Boolean(session && userId && !isLoading && !isRoleLoading) && mayViewAuditLog(role, permissions)

@@ -1,4 +1,4 @@
-import type { DeviceStatus } from './deviceApi'
+import type { DeviceStatus } from '../devices/deviceApi'
 
 /** Deutsche Anzeigenamen der Gerätestatus; genutzt vom Audit-Log (auditLogFormat). */
 export const deviceStatusLabels: Record<DeviceStatus, string> = {

@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { deviceStatusLabel, deviceStatusLabels } from '../devices/deviceStatusLabels'
+import { deviceStatusLabel, deviceStatusLabels } from './deviceStatusLabels'
 import { AUDIT_ACTIONS, type AuditLogEntry } from './auditLogApi'
 import {
   AUDIT_ACTION_GROUPS,
@@ -59,7 +59,7 @@ describe('Audit-Log – Bezeichnungen', () => {
     expect(auditActionLabel(null)).toBe('Unbekannte Aktion')
   })
 
-  it('gruppiert alle Aktionen genau einmal und in Spezifikationsreihenfolge', () => {
+  it('gruppiert alle Aktionen genau einmal und in fester Reihenfolge', () => {
     expect(AUDIT_ACTION_GROUPS.map(group => group.label)).toEqual(['Geräte', 'Zuweisungen', 'Benutzer', 'Rollen'])
     expect(AUDIT_ACTION_GROUPS.flatMap(group => group.actions)).toEqual([...AUDIT_ACTIONS])
   })

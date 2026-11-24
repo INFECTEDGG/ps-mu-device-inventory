@@ -34,16 +34,6 @@ describe('Audit-Einträge – Tabelle', () => {
     expect(within(table).getByText('Gerät zugewiesen')).toBeTruthy()
   })
 
-  it('blendet in der kompakten Geräteansicht die Objektspalte aus', () => {
-    render(<AuditLogEntries entries={[makeEntry()]} compact label="Änderungsprotokoll" />)
-    const table = screen.getByRole('table', { name: 'Änderungsprotokoll' })
-    expect(within(table).getAllByRole('columnheader').map(header => header.textContent))
-      .toEqual(['Zeitpunkt', 'Benutzer', 'Aktion', 'Details'])
-    expect(within(table).queryByText('IT-0003')).toBeNull()
-    expect(within(table.querySelector('tbody')!).getAllByRole('cell')).toHaveLength(4)
-    expect(screen.getByRole('region', { name: 'Änderungsprotokoll' })).toBeTruthy()
-  })
-
   it('zeigt Name und E-Mail, nur E-Mail oder „System“ als ausführenden Benutzer', () => {
     render(<AuditLogEntries entries={[
       makeEntry(),

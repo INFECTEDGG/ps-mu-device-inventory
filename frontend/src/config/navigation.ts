@@ -1,6 +1,6 @@
 
 import type { IconName } from '../components/ui/AppIcon'
-import { hasPermission, type Permission, type Role } from './permissions'
+import type { Permission } from './permissions'
 
 export interface NavigationEntry {
   description: string
@@ -8,21 +8,6 @@ export interface NavigationEntry {
   label: string
   path: string
   requiredPermission: Permission
-  /**
-   * Optional: nur diese Rollen dürfen den Bereich öffnen, auch wenn einer anderen
-   * Rolle die Berechtigung zugewiesen wurde (Spiegel der serverseitigen Rollenprüfung).
-   */
-  allowedRoles?: readonly Role[]
-}
-
-/** Gemeinsame Regel für Menü (Sidebar) und Seitenzugriff (App). */
-export function canOpenNavigationEntry(
-  entry: NavigationEntry,
-  role: Role | null | undefined,
-  permissions?: readonly Permission[] | null,
-): boolean {
-  if (!role || !hasPermission(role, entry.requiredPermission, permissions)) return false
-  return !entry.allowedRoles || entry.allowedRoles.includes(role)
 }
 
 export const navigationEntries: readonly NavigationEntry[] = [
@@ -64,11 +49,9 @@ export const navigationEntries: readonly NavigationEntry[] = [
   {
     label: 'Audit-Log',
     path: '/audit-log',
-    icon: 'audit',
-    description: 'Protokollierte Änderungen an Geräten, Zuweisungen und Benutzern nachvollziehen.',
+    icon: 'layout',
+    description: 'Protokoll relevanter Aktionen: wer hat wann was geändert.',
     requiredPermission: 'audit:view',
-    // Wie serverseitig (inventory_audit_log_list): nur Administratoren und SuperAdmins.
-    allowedRoles: ['admin', 'super_admin'],
   },
   {
     label: 'Einstellungen',

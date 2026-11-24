@@ -2,7 +2,8 @@ import { useEffect } from 'react'
 import { AppLayout } from './components/layout/AppLayout'
 import { PageContainer } from './components/ui/PageContainer'
 import { PageHeader } from './components/ui/PageHeader'
-import { canOpenNavigationEntry, navigationEntries } from './config/navigation'
+import { navigationEntries } from './config/navigation'
+import { hasPermission } from './config/permissions'
 import { useAppNavigation } from './hooks/useAppNavigation'
 import { useAuthSession } from './hooks/useAuthSession'
 import { AccountAccessPage } from './pages/AccountAccessPage'
@@ -30,9 +31,8 @@ export default function App() {
 
   const { currentPath, navigate } = useAppNavigation()
   const currentPage = navigationEntries.find(entry => entry.path === currentPath)
-  // Gleiche Regel wie im Menü: Berechtigung und ggf. zulässige Rolle (z. B. Audit-Log).
   const hasAccess = currentPage
-    ? canOpenNavigationEntry(currentPage, role, permissions)
+    ? hasPermission(role, currentPage.requiredPermission, permissions)
     : false
   const isChecking = isLoading || (session !== null && isRoleLoading)
 
