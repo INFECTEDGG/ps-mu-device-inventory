@@ -16,6 +16,7 @@ import { DeviceManagementPage } from './features/devices/DeviceManagementPage'
 import { AssignmentManagementPage } from './features/assignments/AssignmentManagementPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
 import { SettingsPage } from './features/settings/SettingsPage'
+import { AuditLogPage } from './features/audit/AuditLogPage'
 
 export default function App() {
   const {
@@ -84,6 +85,8 @@ export default function App() {
       <DeviceManagementPage />
     ) : currentPath === '/zuweisungen' ? (
       <AssignmentManagementPage onNavigateToDevices={(event) => navigate('/geraete', event)} />
+    ) : currentPath === '/audit-log' ? (
+      <AuditLogPage />
     ) : (
       <PlaceholderPage page={currentPage} />
     )}

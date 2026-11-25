@@ -47,6 +47,13 @@ export const navigationEntries: readonly NavigationEntry[] = [
     requiredPermission: 'permissions:manage',
   },
   {
+    label: 'Audit-Log',
+    path: '/audit-log',
+    icon: 'layout',
+    description: 'Protokoll relevanter Aktionen: wer hat wann was geändert.',
+    requiredPermission: 'audit:view',
+  },
+  {
     label: 'Einstellungen',
     path: '/einstellungen',
     icon: 'settings',

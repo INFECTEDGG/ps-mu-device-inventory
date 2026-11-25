@@ -1,0 +1,139 @@
+/* PBI-15 Audit-Log: nutzt ausschließlich Theme-Variablen, damit Hell- und Dunkelmodus greifen. */
+.audit-panel {
+  margin-top: 1.5rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+.audit-panel h2 { margin: 0; font-size: 1.25rem; }
+.audit-panel h2:focus { outline: none; }
+.audit-panel h2:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+
+/* Filterformular: Raster bricht auf schmalen Bildschirmen automatisch um. */
+.audit-filter-form { margin-top: 1rem; }
+.audit-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+.audit-filter-field { display: grid; gap: .45rem; min-width: 0; }
+.audit-filter-field label, .audit-period legend { font-weight: 600; }
+.audit-field {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: .6rem .75rem;
+  border: 1px solid #7a8699;
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+}
+.audit-field[aria-invalid='true'] { border-color: var(--color-error); box-shadow: 0 0 0 1px var(--color-error); }
+.audit-hint { color: var(--color-muted); font-size: .85rem; line-height: 1.45; }
+.audit-period { min-width: 0; margin: 0; padding: 0; border: 0; grid-column: 1 / -1; }
+.audit-period legend { padding: 0; margin-bottom: .45rem; }
+.audit-period__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: .75rem;
+  max-width: 34rem;
+}
+.audit-period__fields label { font-weight: 500; }
+.audit-filter-actions { display: flex; gap: .65rem; flex-wrap: wrap; margin-top: 1.25rem; }
+
+.audit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: .6rem .9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.audit-button:hover:enabled { background: var(--color-hover); }
+.audit-button:active:not(:disabled) { transform: translateY(1px); }
+.audit-button:disabled { opacity: .5; cursor: not-allowed; }
+.audit-button--primary { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+.audit-button--primary:hover:enabled { background: var(--color-primary-dark); }
+
+/* Ergebnisbereich */
+.audit-results-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.audit-results-status { margin: 0; color: var(--color-muted); }
+.audit-panel--busy .audit-table-scroll { opacity: .6; }
+.audit-error {
+  padding: 1rem;
+  border-radius: var(--radius-small);
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+.audit-error p { margin: 0 0 .75rem; }
+.audit-error--inline { margin: 1rem 0 0; font-weight: 600; }
+.audit-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+/* Tabelle: scrollt auf kleinen Bildschirmen horizontal statt das Layout zu sprengen. */
+.audit-table-scroll { width: 100%; overflow-x: auto; border-radius: var(--radius-small); }
+.audit-table { width: 100%; min-width: 52rem; border-collapse: collapse; text-align: left; }
+.audit-table th {
+  background: var(--color-subtle);
+  color: var(--color-muted);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.audit-table th, .audit-table td {
+  padding: .8rem .7rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+.audit-table td { overflow-wrap: anywhere; }
+.audit-table td.audit-cell-time { white-space: nowrap; overflow-wrap: normal; }
+.audit-muted { display: block; margin-top: .2rem; color: var(--color-muted); font-size: .85rem; }
+.audit-muted--label { margin: 0 0 .2rem; }
+.audit-system { color: var(--color-muted); font-style: italic; }
+.audit-action {
+  display: inline-block;
+  padding: .28rem .55rem;
+  border-radius: .5rem;
+  background: var(--color-badge-bg);
+  color: var(--color-badge-text);
+  font-size: .85rem;
+  font-weight: 600;
+}
+.audit-details { margin: 0; padding-left: 1.1rem; line-height: 1.5; }
+.audit-details li + li { margin-top: .15rem; }
+
+:root[data-density='compact'] .audit-table :is(th, td) { padding-block: .42rem; font-size: .86rem; }
+
+/* Dunkelmodus: Eingabefelder mit ausreichend Kontrast (mind. 3:1) zum Hintergrund. */
+:root[data-theme='dark'] .audit-panel .audit-filter-form .audit-field { border-color: #7088a8; }
+:root[data-theme='dark'] .audit-panel .audit-filter-form .audit-field[aria-invalid='true'] { border-color: var(--color-error); }
+
+@media (max-width: 40rem) {
+  .audit-filter-actions .audit-button { flex: 1 1 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .audit-button { transition: none; }
+  .audit-button:active:not(:disabled) { transform: none; }
+}
