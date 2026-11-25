@@ -194,7 +194,7 @@ cd supabase && npm test                 # u. a. tests/auditLog.test.mjs
 cd frontend && npx vitest run src       # u. a. src/features/audit/*.test.ts(x)
 ```
 
-Erwartet: alle Tests grün bis auf die 7 bekannten Fehlschläge in Testdateien anderer Teammitglieder (`hiddenDeactivatedUsers`, `listDisabledUsers`, `superAdminPermissions`), siehe [`testing.md`](testing.md#5-noch-offene-testfälle). Sie bestehen unabhängig von PBI-15 auch auf `main`.
+Erwartet: alle Tests grün.
 
 Geprüft werden:
 
