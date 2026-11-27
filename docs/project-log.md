@@ -239,6 +239,11 @@ Sprint 1 wurde vollständig abgeschlossen.
 - Geräte über CSV inventarisieren
 - Unterschiedliche Ansichten als Admin und Mitarbeiter. Mitarbeiter soll nur seine Geräte und seine Tickets aus dem Ticketsystem sehen können.
 - Benutzerprofil in Einstellungen könnte Mitarbeiterdaten spezifisch aufführen
+- Status farblich: Zugewiesen=grün, Wartung=gelb, Ausgemustert=rot
+- Device Usecase festlegen Primary, TestLab etc.
+- Kategorisierung Desktop, Mobile Device, Printer, Monitore, etc.
+- Device Details mit PopUp Fenster
+- Device Status ohne Zuweisungsrücknahme möglich machen
 
 
 ---

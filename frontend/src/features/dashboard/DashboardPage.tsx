@@ -75,7 +75,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       ? 'Gerätebestand und laufende Zuweisungen auf einen Blick.'
       : 'Deine Geräte und Zuweisungen auf einen Blick.'} />
     <div className="dashboard-toolbar">
-      <span className="dashboard-caption">Aktuelle Supabase-Daten · entsprechend deinen Berechtigungen</span>
       <button type="button" className="dashboard-button" onClick={() => setVersion(v => v + 1)} disabled={loading}>
         {loading ? 'Wird aktualisiert …' : 'Aktualisieren'}
       </button>

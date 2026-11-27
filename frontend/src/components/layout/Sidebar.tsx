@@ -94,16 +94,6 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
           </nav>
         </div>
 
-        <div className="sidebar__footer">
-          <span
-            className="sidebar__footer-mark"
-            aria-hidden="true"
-          />
-          <div>
-            <strong>UI-Grundgerüst</strong>
-            <span>Bereit für Fachmodule</span>
-          </div>
-        </div>
       </aside>
     )
   }

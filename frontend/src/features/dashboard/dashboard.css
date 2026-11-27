@@ -1,6 +1,5 @@
-.dashboard-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1.8rem; }
-.dashboard-caption, .dashboard-help { color: var(--color-muted); line-height: 1.5; }
-.dashboard-caption { font-size: .88rem; }
+.dashboard-toolbar { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1.8rem; }
+.dashboard-help { color: var(--color-muted); line-height: 1.5; }
 .dashboard-section { margin-top: 1.5rem; padding: clamp(1.2rem, 3vw, 2rem); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-medium); }
 .dashboard-section h2 { margin: 0 0 1.35rem; font-size: 1.25rem; }
 .dashboard-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .85rem; }
